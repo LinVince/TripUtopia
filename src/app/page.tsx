@@ -86,9 +86,9 @@ export default function Home() {
             <Typography className="body_p_dark">
               Starting from small meet-up groups in local areas to planned
               outings in national parks across the country… or even a trip
-              abroad to far east Asia! If this sounds like your cup of tea,
-              don’t hesitate to contact us to find out more! Come and join us
-              for a range of different activities!
+              abroad to far east Asia! If this sounds like your cup of tea, do
+              not hesitate to contact us to find out more! Come and join us for
+              a range of different activities!
             </Typography>
           </Box>
         </Box>
@@ -133,7 +133,7 @@ export default function Home() {
             Embark on a global adventure where every spin of our 3D sphere
             symbolizes the footprints we leave behind. As you connect with
             fellow explorers, let your passion for discovery inspire others to
-            trace their stories across the globe. Together, let's create a
+            trace their stories across the globe. Together, let us create a
             tapestry of experiences, memories, and connections that transcend
             boundaries. Join us in this vibrant community and make your mark!
           </Typography>

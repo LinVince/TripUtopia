@@ -27,14 +27,14 @@ export default function Banner() {
           position: "relative",
         }}
       >
-        {/*<Image
-          src="/Backdrop.jpg"
-          alt="post-quantum IC design"
+        <Image
+          src="/background_video.gif"
+          alt=""
           width={1200}
           height={800}
           style={{ width: "100%", height: "100%", objectFit: "cover" }}
-        />*/}
-        <video
+        />
+        {/*<video
           src={require("../../../public/background_video.mp4")}
           autoPlay
           muted
@@ -47,7 +47,7 @@ export default function Banner() {
             top: 0,
             left: 0,
           }}
-        ></video>
+        ></video>*/}
         <Box className="gradient_mask" />
         <Box
           sx={{

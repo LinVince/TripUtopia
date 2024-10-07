@@ -1,0 +1,265 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Animated Border Button */
+.gradient-border {
+  --borderWidth: 2px;
+  background: #000000ca;
+  position: relative;
+  padding: 16px 6px;
+  border-radius: calc(5 * var(--borderWidth));
+  width: 170px;
+  height: 60px;
+  display: flex;
+  align-items: center;
+
+}
+
+.gradient-border:hover{
+  background-color: #ffffff00;
+}
+
+.gradient-border:after {
+  content: '';
+  position: absolute;
+  top: calc(-1 * var(--borderWidth));
+  left: calc(-1 * var(--borderWidth));
+  height: calc(100% + var(--borderWidth) * 2);
+  width: calc(100% + var(--borderWidth) * 2);
+  background: linear-gradient(
+    60deg,
+    #f0a92d55,
+    #0000ff,
+    #0000ff,
+    #8e17e2,
+    #00a2ff,
+    #8b00ff,
+    #8000ff,
+    #0095ff,
+    #0000ff,
+    #0000ff,
+    #0000ff,
+    #0000ff,
+    #0000ff
+  );
+  border-radius: calc(5 * var(--borderWidth));
+  z-index: -1;
+  animation: animatedgradient 15s ease-in-out infinite; 
+  background-size: 300% 300%;
+  filter: blur(2px); /* Optional: to make the glow smoother */
+}
+
+@keyframes animatedgradient {
+  0% {
+    background-position: 0% 100%;
+  }
+  25% {
+    background-position: 25% 75%;
+  }
+  50% {
+    background-position: 50% 50%;
+  }
+  75% {
+    background-position: 75% 25%;
+  }
+  100% {
+    background-position: 100% 0%;
+  }
+}
+
+
+/* Animated Border Button for Submit */
+.gradient-border-submit {
+  --borderWidth: 1px;
+  background: #ffffff;
+  position: relative;
+  padding: 16px 6px;
+  border-radius: calc(10 * var(--borderWidth));
+  width: 120px;
+  height: 50px;
+  display: flex;
+  align-items: center;
+
+}
+
+.gradient-border-submit:hover{
+  background-color: #f8f9ff;
+}
+
+.gradient-border-submit:after {
+  content: '';
+  position: absolute;
+  top: calc(-1 * var(--borderWidth));
+  left: calc(-1 * var(--borderWidth));
+  height: calc(100% + var(--borderWidth) * 2);
+  width: calc(100% + var(--borderWidth) * 2);
+  background: linear-gradient(
+    60deg,
+    #000000,
+    #000000,
+    #000000,
+    #cacaff,
+    #000000,
+    #000000,
+    #000000,
+    #000000
+  );
+  border-radius: calc(10 * var(--borderWidth));
+  z-index: -1;
+  animation: animatedgradient 5s ease-in-out infinite; 
+  background-size: 300% 300%;
+  filter: blur(2px); /* Optional: to make the glow smoother */
+}
+
+@keyframes animatedgradient {
+  0% {
+    background-position: 0% 100%;
+  }
+  25% {
+    background-position: 25% 75%;
+  }
+  50% {
+    background-position: 50% 50%;
+  }
+  75% {
+    background-position: 75% 25%;
+  }
+  100% {
+    background-position: 100% 0%;
+  }
+}
+
+/* Animated Gradient Banner Mask */
+.gradient_mask {
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 1;
+}
+
+.gradient_mask:before {
+  content: ''; /* Ensure the pseudo-element gets rendered */
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%; /* Ensure it covers the full width */
+  height: 100%; /* Ensure it covers the full height */
+  background: radial-gradient(
+    circle,
+    #ffffff55 0%,
+    #ffffff29 50%,
+    #ffffff75 100%
+  );
+  background-size: 300% 300%; /* Ensure large enough gradient for smooth animation */
+  animation: animatedgradientmask 20s ease-in-out infinite; 
+  z-index: 2;
+}
+
+@keyframes animatedgradientmask {
+  0% {
+    background-position: 0% 100%;
+  }
+  25% {
+    background-position: 25% 75%;
+  }
+  50% {
+    background-position: 50% 50%;
+  }
+  75% {
+    background-position: 75% 25%;
+  }
+  100% {
+    background-position: 100% 0%;
+  }
+}
+
+
+/*Class for fonts*/
+.tiny_heading{
+  font-size: 12px;
+  font-weight: 500;
+  font-family: inter, sans-serif;
+  color:#4c4c4c;
+  margin-bottom: 1rem;
+  letter-spacing: 0.1em;
+}
+
+.body_heading{
+  font-size: 30px;
+  font-weight: 600;
+  font-family: inter, sans-serif;
+  color:#777777;
+  margin-bottom: 1rem;
+  letter-spacing: 0.1em;
+}
+
+.body_p{
+  font-size: 16px;
+  font-weight: 400;
+  font-family: inter, sans-serif;
+  color:#000000;
+  margin-bottom: 1rem;
+  line-height: 2;
+  letter-spacing: 0.1em;
+}
+
+@media (max-width: 900px) {
+  .tiny_heading {
+    font-size: 10px; 
+  }
+
+  .body_heading {
+    font-size: 28px; 
+  }
+
+  .body_p {
+    font-size: 18px; 
+  }
+}
+
+/*Class for fonts (Dark)*/
+.tiny_heading_dark{
+  font-size: 14px;
+  font-weight: 500;
+  font-family: inter, sans-serif;
+  color:#acacac;
+  margin-bottom: 1rem;
+  letter-spacing: 0.1em;
+}
+
+.body_heading_dark{
+  font-size: 30px;
+  font-weight: 600;
+  font-family: inter, sans-serif;
+  color:#ffffff;
+  margin-bottom: 1rem;
+  letter-spacing: 0.1em;
+}
+
+.body_p_dark{
+  font-size: 16px;
+  font-weight: 400;
+  font-family: inter, sans-serif;
+  color:#ffffff;
+  margin-bottom: 1rem;
+  line-height: 2;
+  letter-spacing: 0.1em;
+}
+
+@media (max-width: 900px) {
+  .tiny_heading_dark {
+    font-size: 10px; 
+    
+  }
+
+  .body_heading_dark {
+    font-size: 28px; 
+  }
+
+  .body_p_dark {
+    font-size: 18px; 
+  }
+}

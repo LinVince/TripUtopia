@@ -136,7 +136,7 @@ function NavBar() {
                 maxWidth: "100%",
                 maxHeight: "100%",
                 height: "auto",
-                width: "100px",
+                width: "70px",
               }}
             />
           </Box>

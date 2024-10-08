@@ -1,6 +1,7 @@
 import { Box, Typography } from "@mui/material";
 import { Inter } from "next/font/google";
 import Image from "next/image";
+import MuxPlayer from "@mux/mux-player-react";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -27,13 +28,28 @@ export default function Banner() {
           position: "relative",
         }}
       >
-        <Image
+        <MuxPlayer
+          playbackId="ABNeBhFbSsQinvd00exe9xo7RDw6XihstAH7DtfBLIAs"
+          streamType="on-demand"
+          autoPlay
+          muted
+          loop
+          style={{
+            width: "100%", // Makes the video stretch to the full width of the container
+            height: "120vh", // Keeps the video at the full viewport height
+            objectFit: "cover", // Crops the sides of the video to maintain the height
+            position: "absolute", // Ensures the video stays in a fixed position
+            top: 0,
+            left: 0,
+          }}
+        />
+        {/*<Image
           src="/background_video.gif"
           alt=""
           width={1200}
           height={800}
           style={{ width: "100%", height: "100%", objectFit: "cover" }}
-        />
+        />*/}
         {/*<video
           src={require("../../../public/background_video.mp4")}
           autoPlay
@@ -48,6 +64,7 @@ export default function Banner() {
             left: 0,
           }}
         ></video>*/}
+
         <Box className="gradient_mask" />
         <Box
           sx={{

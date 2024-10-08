@@ -2,6 +2,12 @@
 @tailwind components;
 @tailwind utilities;
 
+
+mux-player {
+  --media-object-fit: cover;
+  --media-object-position: center;
+}
+
 /* Animated Border Button */
 .gradient-border {
   --borderWidth: 2px;

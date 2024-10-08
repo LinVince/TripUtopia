@@ -1,6 +1,5 @@
 import { Box, Typography } from "@mui/material";
 import { Inter } from "next/font/google";
-import Image from "next/image";
 import MuxPlayer from "@mux/mux-player-react";
 
 const inter = Inter({ subsets: ["latin"] });

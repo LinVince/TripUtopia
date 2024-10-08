@@ -27,7 +27,7 @@ const TrademarkLegal: React.FC = () => {
           trademarks, service marks, and trade names owned or licensed by
           TripUtopia. (&quot;Organization,&quot; &quot;we,&quot; &quot;us,&quot;
           and &quot;our&quot;) that are used on our website located at
-          https://triputopia.com (&quot;Website&quot;). The use of these
+          https://triputopia.co.uk (&quot;Website&quot;). The use of these
           trademarks is governed by the terms set forth below.
         </Typography>
         <Typography variant="h5" sx={{ ...inter.style, mt: 4 }} gutterBottom>

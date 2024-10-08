@@ -30,7 +30,7 @@ export default function Banner() {
         <MuxPlayer
           playbackId="ABNeBhFbSsQinvd00exe9xo7RDw6XihstAH7DtfBLIAs"
           streamType="on-demand"
-          autoPlay
+          autoPlay="muted"
           muted
           loop
           style={{

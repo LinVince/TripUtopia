@@ -6,6 +6,8 @@
 mux-player {
   --media-object-fit: cover;
   --media-object-position: center;
+  --controls: none;
+  --play-button: none;
 }
 
 /* Animated Border Button */

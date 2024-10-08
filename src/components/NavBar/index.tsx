@@ -22,7 +22,7 @@ const inter = Inter({ subsets: ["latin"] });
 const pages = [
   /*{ name: "Home", href: "/" },
   { name: "Team", href: "/Team" },*/
-  { name: "Contact", href: "#contact" },
+  { name: "Contact", href: "./#contact" },
 ];
 //const pages_m = [...pages, { name: "Contact", href: "/Contact" }];
 const pages_m = [...pages];
@@ -124,18 +124,19 @@ function NavBar() {
               display: { xs: "none", md: "flex" },
               alignItems: "center",
               mr: 1,
+              mt: 1,
             }}
           >
             <Image
-              src="/TripUtopia_logo.png"
+              src="/logo_b.png"
               alt="Logo"
-              width={150}
-              height={50}
+              width={100}
+              height={100}
               style={{
                 maxWidth: "100%",
                 maxHeight: "100%",
                 height: "auto",
-                width: "170px",
+                width: "100px",
               }}
             />
           </Box>
@@ -242,15 +243,15 @@ function NavBar() {
             }}
           >
             <Image
-              src="/TripUtopia_logo.png"
+              src="/logo_b.png"
               alt="Logo"
-              width={150}
-              height={50}
+              width={100}
+              height={100}
               style={{
                 maxWidth: "100%",
                 maxHeight: "100%",
                 height: "auto",
-                width: "170px",
+                width: "50px",
               }}
             />
           </Box>

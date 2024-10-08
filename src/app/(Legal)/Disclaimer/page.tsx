@@ -1,13 +1,5 @@
 import React from "react";
-import {
-  Container,
-  Typography,
-  Link,
-  Box,
-  List,
-  ListItem,
-  Divider,
-} from "@mui/material";
+import { Container, Typography, Box } from "@mui/material";
 import { Inter } from "next/font/google";
 
 const inter = Inter({ subsets: ["latin"], weight: ["400", "600", "700"] });
@@ -27,7 +19,7 @@ const Disclaimer: React.FC = () => {
         </Typography>
         <Typography variant="body1" paragraph sx={inter.style}>
           The information provided by TripUtopia. (&quot;we,&quot;
-          &quot;us,&quot; or &quot;our&quot;) on https://triputopia.com (the
+          &quot;us,&quot; or &quot;our&quot;) on https://triputopia.co.uk (the
           &quot;Site&quot;) is for general informational purposes only. All
           information on the Site is provided in good faith, however we make no
           representation or warranty of any kind, express or implied, regarding

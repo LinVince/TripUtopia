@@ -25,7 +25,7 @@ const PrivacyPolicy: React.FC = () => {
           This Cookie Policy explains how TripUtopia (&quot;Organization,&quot;
           &quot;we,&quot; &quot;us,&quot; and &quot;our&quot;) uses cookies and
           similar technologies to recognize you when you visit our website at
-          https://triputopia.com (&quot;Website&quot;). It explains what these
+          https://triputopia.co.uk (&quot;Website&quot;). It explains what these
           technologies are and why we use them, as well as your rights to
           control our use of them.
         </Typography>

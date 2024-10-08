@@ -56,14 +56,14 @@ const Terms: React.FC = () => {
             </ListItem>
             <ListItem>
               <Typography variant="body1">
-                <strong>Country</strong> refers to: Florida, United States.
+                <strong>Country</strong> refers to: the United Kingdom.
               </Typography>
             </ListItem>
             <ListItem>
               <Typography variant="body1">
-                <strong>Company</strong> (referred to as either &quot;the
-                Company&quot;, &quot;We&quot;, &quot;Us&quot; or &quot;Our&quot;
-                in this Agreement) refers to TripUtopia.
+                <strong>Organization</strong> (referred to as either &quot;the
+                Organization&quot;, &quot;We&quot;, &quot;Us&quot; or
+                &quot;Our&quot; in this Agreement) refers to TripUtopia.
               </Typography>
             </ListItem>
             <ListItem>
@@ -81,8 +81,8 @@ const Terms: React.FC = () => {
               <Typography variant="body1">
                 <strong>Terms and Conditions</strong> (also referred to as
                 &quot;Terms&quot;) mean these Terms and Conditions that form the
-                entire agreement between You and the Company regarding the use
-                of the Service.
+                entire agreement between You and the Organization regarding the
+                use of the Service.
               </Typography>
             </ListItem>
             <ListItem>
@@ -105,7 +105,7 @@ const Terms: React.FC = () => {
             <ListItem>
               <Typography variant="body1">
                 <strong>You</strong> means the individual accessing or using the
-                Service, or the company, or other legal entity on behalf of
+                Service, or the organization, or other legal entity on behalf of
                 which such individual is accessing or using the Service, as
                 applicable.
               </Typography>
@@ -119,9 +119,9 @@ const Terms: React.FC = () => {
           </Typography>
           <Typography variant="body1">
             These are the Terms and Conditions governing the use of this Service
-            and the agreement that operates between You and the Company. These
-            Terms and Conditions set out the rights and obligations of all users
-            regarding the use of the Service.
+            and the agreement that operates between You and the Organization.
+            These Terms and Conditions set out the rights and obligations of all
+            users regarding the use of the Service.
           </Typography>
           <Typography variant="body1" mt={2}>
             Your access to and use of the Service is conditioned on Your
@@ -135,17 +135,17 @@ const Terms: React.FC = () => {
             and Conditions then You may not access the Service.
           </Typography>
           <Typography variant="body1" mt={2}>
-            You represent that you are over the age of 18. The Company does not
-            permit those under 18 to use the Service.
+            You represent that you are over the age of 18. The Organization does
+            not permit those under 18 to use the Service.
           </Typography>
           <Typography variant="body1" mt={2}>
             Your access to and use of the Service is also conditioned on Your
-            acceptance of and compliance with the Privacy Policy of the Company.
-            Our Privacy Policy describes Our policies and procedures on the
-            collection, use and disclosure of Your personal information when You
-            use the Application or the Website and tells You about Your privacy
-            rights and how the law protects You. Please read Our Privacy Policy
-            carefully before using Our Service.
+            acceptance of and compliance with the Privacy Policy of the
+            Organization. Our Privacy Policy describes Our policies and
+            procedures on the collection, use and disclosure of Your personal
+            information when You use the Application or the Website and tells
+            You about Your privacy rights and how the law protects You. Please
+            read Our Privacy Policy carefully before using Our Service.
           </Typography>
         </Box>
 
@@ -155,16 +155,17 @@ const Terms: React.FC = () => {
           </Typography>
           <Typography variant="body1">
             Our Service may contain links to third-party websites or services
-            that are not owned or controlled by the Company.
+            that are not owned or controlled by the Organization.
           </Typography>
           <Typography variant="body1" mt={2}>
-            The Company has no control over, and assumes no responsibility for,
-            the content, privacy policies, or practices of any third-party
+            The organization has no control over, and assumes no responsibility
+            for, the content, privacy policies, or practices of any third-party
             websites or services. You further acknowledge and agree that the
-            Company shall not be responsible or liable, directly or indirectly,
-            for any damage or loss caused or alleged to be caused by or in
-            connection with the use of or reliance on any such content, goods,
-            or services available on or through any such websites or services.
+            organization shall not be responsible or liable, directly or
+            indirectly, for any damage or loss caused or alleged to be caused by
+            or in connection with the use of or reliance on any such content,
+            goods, or services available on or through any such websites or
+            services.
           </Typography>
           <Typography variant="body1" mt={2}>
             We strongly advise You to read the terms and conditions and privacy
@@ -193,7 +194,7 @@ const Terms: React.FC = () => {
           </Typography>
           <Typography variant="body1">
             Notwithstanding any damages that You might incur, the entire
-            liability of the Company and any of its suppliers under any
+            liability of the organization and any of its suppliers under any
             provision of this Terms and Your exclusive remedy for all of the
             foregoing shall be limited to the amount actually paid by You
             through the Service or 100 USD if You haven&apos;t purchased
@@ -201,16 +202,16 @@ const Terms: React.FC = () => {
           </Typography>
           <Typography variant="body1" mt={2}>
             To the maximum extent permitted by applicable law, in no event shall
-            the Company or its suppliers be liable for any special, incidental,
-            indirect, or consequential damages whatsoever (including, but not
-            limited to, damages for loss of profits, loss of data or other
-            information, for business interruption, for personal injury, loss of
-            privacy arising out of or in any way related to the use of or
-            inability to use the Service, third-party software and/or
+            the organization or its suppliers be liable for any special,
+            incidental, indirect, or consequential damages whatsoever
+            (including, but not limited to, damages for loss of profits, loss of
+            data or other information, for business interruption, for personal
+            injury, loss of privacy arising out of or in any way related to the
+            use of or inability to use the Service, third-party software and/or
             third-party hardware used with the Service, or otherwise in
-            connection with any provision of this Terms), even if the Company or
-            any supplier has been advised of the possibility of such damages and
-            even if the remedy fails of its essential purpose.
+            connection with any provision of this Terms), even if the
+            organization or any supplier has been advised of the possibility of
+            such damages and even if the remedy fails of its essential purpose.
           </Typography>
           <Typography variant="body1" mt={2}>
             Some states do not allow the exclusion of implied warranties or
@@ -229,14 +230,14 @@ const Terms: React.FC = () => {
             The Service is provided to You &quot;AS IS&quot; and &quot;AS
             AVAILABLE&quot; and with all faults and defects without warranty of
             any kind. To the maximum extent permitted under applicable law, the
-            Company, on its own behalf and on behalf of its Affiliates and its
-            and their respective licensors and service providers, expressly
+            organization, on its own behalf and on behalf of its Affiliates and
+            its and their respective licensors and service providers, expressly
             disclaims all warranties, whether express, implied, statutory or
             otherwise, with respect to the Service, including all implied
             warranties of merchantability, fitness for a particular purpose,
             title and non-infringement, and warranties that may arise out of
             course of dealing, course of performance, usage or trade practice.
-            Without limitation to the foregoing, the Company provides no
+            Without limitation to the foregoing, the organization provides no
             warranty or undertaking, and makes no representation of any kind
             that the Service will meet Your requirements, achieve any intended
             results, be compatible or work with any other software,
@@ -245,16 +246,17 @@ const Terms: React.FC = () => {
             that any errors or defects can or will be corrected.
           </Typography>
           <Typography variant="body1" mt={2}>
-            Without limiting the foregoing, neither the Company nor any of the
-            company&apos;s providers makes any representation or warranty of any
-            kind, express or implied: (i) as to the operation or availability of
-            the Service, or the information, content, and materials or products
-            included thereon; (ii) that the Service will be uninterrupted or
-            error-free; (iii) as to the accuracy, reliability, or currency of
-            any information or content provided through the Service; or (iv)
-            that the Service, its servers, the content, or e-mails sent from or
-            on behalf of the Company are free of viruses, scripts, trojan
-            horses, worms, malware, timebombs or other harmful components.
+            Without limiting the foregoing, neither the organization nor any of
+            the organization&apos;s providers makes any representation or
+            warranty of any kind, express or implied: (i) as to the operation or
+            availability of the Service, or the information, content, and
+            materials or products included thereon; (ii) that the Service will
+            be uninterrupted or error-free; (iii) as to the accuracy,
+            reliability, or currency of any information or content provided
+            through the Service; or (iv) that the Service, its servers, the
+            content, or e-mails sent from or on behalf of the organization are
+            free of viruses, scripts, trojan horses, worms, malware, timebombs
+            or other harmful components.
           </Typography>
           <Typography variant="body1" mt={2}>
             Some jurisdictions do not allow the exclusion of certain types of
@@ -285,7 +287,7 @@ const Terms: React.FC = () => {
           <Typography variant="body1">
             If You have any concern or dispute about the Service, You agree to
             first try to resolve the dispute informally by contacting the
-            Company.
+            organization.
           </Typography>
         </Box>
 

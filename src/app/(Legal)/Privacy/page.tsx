@@ -32,7 +32,7 @@ const PrivacyPolicy: React.FC = () => {
           <ListItem>
             <Typography variant="body1">
               - Visit our website at
-              <Link href="/"> https://triputopia.com</Link>, or any website of
+              <Link href="/"> https://triputopia.co.uk</Link>, or any website of
               ours that links to this privacy notice
             </Typography>
           </ListItem>
@@ -159,7 +159,7 @@ const PrivacyPolicy: React.FC = () => {
         <Typography variant="body1" paragraph sx={inter.style}>
           Like many businesses, we also collect information through cookies and
           similar technologies. You can find out more about this in our Cookie
-          Notice: <Link href="/Cookies">https://triputopia.com/Cookies</Link>.
+          Notice: <Link href="/Cookies">https://triputopia.co.uk/Cookies</Link>.
         </Typography>
 
         <Typography
@@ -300,7 +300,7 @@ const PrivacyPolicy: React.FC = () => {
           and pixels) to access or store information. You can learn more about
           this in our Cookie Notice:{" "}
           <Link href="/Cookies" sx={inter.style}>
-            https://triputopia.com/Cookies
+            https://triputopia.co.uk/Cookies
           </Link>
           .
         </Typography>

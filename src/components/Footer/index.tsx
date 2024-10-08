@@ -56,7 +56,7 @@ function Footer() {
             }}
           >
             <Image
-              src="/TripUtopia_logo.png"
+              src="/logo_w.png"
               alt="Logo"
               width={250}
               height={150}
@@ -64,7 +64,7 @@ function Footer() {
                 maxWidth: "100%",
                 maxHeight: "100%",
                 height: "auto",
-                width: "250px",
+                width: "150px",
               }}
             />
           </Box>
@@ -166,13 +166,13 @@ function Footer() {
           {/*Mobile-size Logo*/}
           <Box width="100%" display="flex" justifyContent="center" py={5}>
             <Image
-              src="/TripUtopia_logo.png"
+              src="/logo_w.png"
               alt="Logo"
-              width={250}
-              height={150}
+              width={100}
+              height={100}
               style={{
                 height: "auto",
-                width: "250px",
+                width: "150px",
               }}
             />
           </Box>

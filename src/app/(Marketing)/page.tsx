@@ -1,6 +1,7 @@
 import * as React from "react";
 import Banner from "@/components/Banner";
 import { Box, Typography } from "@mui/material";
+import type { Metadata } from "next";
 import AnimatedPointSphere from "@/components/DotSpere3D";
 import CookieConsent from "@/components/CookieConsent";
 import Image from "next/image";

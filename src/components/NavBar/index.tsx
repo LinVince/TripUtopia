@@ -162,6 +162,7 @@ function NavBar() {
               </Button>
             ))}
           </Box>
+
           {/*Contact Button Md-size view*/}
           {/* <Box
             sx={{

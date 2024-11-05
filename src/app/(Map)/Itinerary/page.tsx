@@ -43,7 +43,9 @@ interface UserCardsData {
 // Cards data created by users (GET API with User's Email)
 let userCardsData: UserCardsData = {
   Day1: [],
-  Day2: [],
+  Default: [],
+  Default_2: [],
+  Default_3: [],
 };
 
 // Cards data shared with users (GET API with User's Email)
@@ -51,7 +53,8 @@ let sharedCardsData: Card[] = [];
 
 const scrollBarStyle = {
   "&::-webkit-scrollbar": {
-    width: "4px",
+    width: "2px",
+    height: "2px",
     // Set the width of the scrollbar
   },
   "&::-webkit-scrollbar-thumb": {
@@ -167,19 +170,21 @@ function DroppableColumn({ id, cards }: DroppableColumnProps) {
   });
 
   const style = {
-    width: "280px",
+    minWidth: "200px",
     maxWidth: "350px",
-    height: "90vh",
+    height: "85vh",
     display: "flex",
     flexDirection: "column",
     alignItems: "center",
     paddingBottom: 5,
     px: 2,
+    marginTop: 5,
     backgroundColor: "white",
     borderRadius: "10px",
     mx: 1,
     flex: 1,
-    overflow: "auto",
+    overflowX: "auto",
+    overflowY: "auto",
     ...scrollBarStyle,
   };
 
@@ -213,9 +218,20 @@ function DroppableColumn({ id, cards }: DroppableColumnProps) {
   );
 }
 
+import FullscreenOutlinedIcon from "@mui/icons-material/FullscreenOutlined";
+import FullscreenExitOutlinedIcon from "@mui/icons-material/FullscreenExitOutlined";
+import AddOutlinedIcon from "@mui/icons-material/AddOutlined";
+import SaveAltOutlinedIcon from "@mui/icons-material/SaveAltOutlined";
+import axios from "axios";
+
 function DragAndDropPage() {
   const mapContext = useMapContext();
-  const { userItineraryData, setUserItineraryData } = mapContext;
+  const {
+    userItineraryData,
+    setUserItineraryData,
+    itineraryWindowExpanded,
+    setItineraryWindowExpanded,
+  } = mapContext;
   const [activeId, setActiveId] = useState<number | null>(null);
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -228,10 +244,12 @@ function DragAndDropPage() {
     height: "auto",
     display: "flex",
     flexDirection: "row",
-    flexWrap: "wrap",
+    justifyContent: "space-between",
     backgroundColor: "white",
-    px: 1,
+    px: 0,
     overflow: "auto",
+    position: "relative",
+    ...scrollBarStyle,
   };
 
   function findContainer(id: number | string) {
@@ -336,6 +354,36 @@ function DragAndDropPage() {
     setActiveId(null);
   }
 
+  const handleExpandedClick = () => {
+    setItineraryWindowExpanded(!itineraryWindowExpanded);
+  };
+
+  function addNewDay(day: string) {
+    if (!(day in userItineraryData)) {
+      setUserItineraryData((preState: any) => ({ ...preState, day: [] }));
+    } else {
+      console.log(`The key '${day}' already exists in userCardsData.`);
+    }
+  }
+
+  const handleAddColumnClick = () => {
+    addNewDay("Day3");
+  };
+
+  const { data: session } = useSession();
+
+  const handleSave = async () => {
+    try {
+      const response = await axios.post("/api/itinerarydata", {
+        data: userItineraryData,
+        email: session?.user?.email,
+      });
+      console.log("Data sent:", response.data);
+    } catch (error) {
+      console.error("There was an error submitting the form:", error);
+    }
+  };
+
   return (
     <Box sx={wrapperStyle}>
       <DndContext
@@ -345,9 +393,11 @@ function DragAndDropPage() {
         onDragOver={handleDragOver}
         onDragEnd={handleDragEnd}
       >
-        {Object.entries(userItineraryData).map(([columnName, cards]) => (
-          <DroppableColumn key={columnName} id={columnName} cards={cards} />
-        ))}
+        <Box sx={{ display: "flex", justifyContent: "flex-start" }}>
+          {Object.entries(userItineraryData).map(([columnName, cards]) => (
+            <DroppableColumn key={columnName} id={columnName} cards={cards} />
+          ))}
+        </Box>
 
         <DragOverlay>
           {activeId ? (
@@ -359,6 +409,45 @@ function DragAndDropPage() {
           ) : null}
         </DragOverlay>
       </DndContext>
+      <Box
+        sx={{
+          position: "sticky",
+          right: 0,
+          display: "flex",
+          flexDirection: "column",
+          px: 2,
+          justifyContent: "space-between",
+          backgroundColor: "white",
+        }}
+      >
+        <IconButton onClick={handleExpandedClick}>
+          {itineraryWindowExpanded ? (
+            <FullscreenExitOutlinedIcon />
+          ) : (
+            <FullscreenOutlinedIcon />
+          )}
+        </IconButton>
+        <IconButton
+          onClick={handleAddColumnClick}
+          sx={{
+            "&:hover": {
+              backgroundColor: "white",
+            },
+          }}
+        >
+          <AddOutlinedIcon />
+        </IconButton>
+        <IconButton
+          onClick={handleSave}
+          sx={{
+            "&:hover": {
+              backgroundColor: "white",
+            },
+          }}
+        >
+          <SaveAltOutlinedIcon />
+        </IconButton>
+      </Box>
     </Box>
   );
 }
@@ -496,6 +585,7 @@ interface Place {
   html_attributions: string[];
   photos: google.maps.places.PlacePhoto[];
   reviews: google.maps.places.PlaceReview[];
+  user_ratings_total: number;
   url: string;
 }
 
@@ -557,6 +647,7 @@ function PlaceDetail() {
             "formatted_phone_number",
             "photos",
             "reviews",
+            "user_ratings_total",
             "url",
           ],
         };
@@ -577,6 +668,7 @@ function PlaceDetail() {
                 html_attributions: place.html_attributions ?? [],
                 photos: place.photos ?? [],
                 reviews: place.reviews ?? [],
+                user_ratings_total: place.user_ratings_total ?? 0,
                 url: place.url ?? "",
               };
               setPlaceData(validatedPlaceData);
@@ -733,7 +825,7 @@ function PlaceDetail() {
           <Box display="flex" alignItems="center" mb={2}>
             <Rating value={placeData.rating} readOnly precision={0.1} />
             <Typography variant="body2" color="textSecondary" ml={1}>
-              {placeData.rating.toFixed(1)}
+              {placeData.rating.toFixed(1)} ({placeData.user_ratings_total})
             </Typography>
           </Box>
         )}
@@ -835,7 +927,10 @@ interface MapContextType {
   setUserItineraryData: (data: any) => void;
   mapDetailOpen: boolean;
   setMapDetailOpen: (data: boolean) => void;
+  itineraryWindowExpanded: boolean;
+  setItineraryWindowExpanded: (data: boolean) => void;
 }
+
 const MapContext = createContext<MapContextType | undefined>(undefined);
 
 const MapProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -849,6 +944,7 @@ const MapProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     useState<UserCardsData>(userCardsData);
 
   const [mapDetailOpen, setMapDetailOpen] = useState(false);
+  const [itineraryWindowExpanded, setItineraryWindowExpanded] = useState(false);
 
   return (
     <MapContext.Provider
@@ -859,6 +955,8 @@ const MapProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
         setUserItineraryData,
         mapDetailOpen,
         setMapDetailOpen,
+        itineraryWindowExpanded,
+        setItineraryWindowExpanded,
       }}
     >
       {children}
@@ -874,9 +972,24 @@ const useMapContext = () => {
   return context;
 };
 
+import { useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
+
 function ItineraryPage() {
   const mapContext = useMapContext();
-  const { locationData, mapDetailOpen } = mapContext;
+  const { locationData, mapDetailOpen, itineraryWindowExpanded } = mapContext;
+  const router = useRouter();
+  const { data: session, status } = useSession();
+
+  useEffect(() => {
+    if (status === "loading") return;
+
+    if (!session) {
+      router.push("/Auth");
+    }
+
+    console.log(session);
+  }, [session, status, router]);
 
   return (
     <>
@@ -886,11 +999,12 @@ function ItineraryPage() {
           display: "flex",
           justifyContent: "center",
           alignItems: "center",
+          overflow: "hidden",
         }}
       >
         <Box
           sx={{
-            width: "40%",
+            width: itineraryWindowExpanded ? "100%" : "40%",
             backgroundColor: "black",
           }}
         >
@@ -899,7 +1013,7 @@ function ItineraryPage() {
 
         <Box
           sx={{
-            width: "60%",
+            width: itineraryWindowExpanded ? "0%" : "60%",
             height: "100vh",
             position: "relative",
           }}
@@ -934,10 +1048,13 @@ function ItineraryPage() {
   );
 }
 
+import SessionWrapper from "@/components/SessionWrapper";
 export default function RenderDom() {
   return (
-    <MapProvider>
-      <ItineraryPage />
-    </MapProvider>
+    <SessionWrapper>
+      <MapProvider>
+        <ItineraryPage />
+      </MapProvider>
+    </SessionWrapper>
   );
 }

@@ -39,6 +39,7 @@
     "@react-google-maps/api": "^2.20.3",
     "@react-three/drei": "^9.109.2",
     "@react-three/fiber": "^8.16.8",
+    "@reduxjs/toolkit": "^2.3.0",
     "axios": "^1.7.3",
     "cookies-next": "^4.2.1",
     "date-fns": "^4.1.0",

@@ -164,6 +164,91 @@ interface DroppableColumnProps {
   cards: Card[];
 }
 
+import { Input } from "@mui/material";
+import EditIcon from "@mui/icons-material/Edit";
+import CheckIcon from "@mui/icons-material/Check";
+
+const EditableColumnName = ({ columnName }: { columnName: string }) => {
+  const [isEditing, setIsEditing] = useState(false);
+  const [tempName, setTempName] = useState(columnName);
+  const mapContext = useMapContext();
+  const { userItineraryData, setUserItineraryData } = mapContext;
+
+  const handleEditClick = () => {
+    setIsEditing(true);
+  };
+
+  const handleSaveClick = () => {
+    setIsEditing(false);
+
+    if (columnName !== tempName) {
+      // Create a new object with the updated key
+      const updatedData = { ...userItineraryData };
+
+      // If the columnName key exists, rename it to tempName
+      if (userItineraryData.hasOwnProperty(columnName)) {
+        updatedData[tempName] = updatedData[columnName]; // Copy data to new key
+        delete updatedData[columnName]; // Remove the old key
+      }
+
+      // Update global state
+      setUserItineraryData(updatedData);
+    }
+  };
+
+  const columnNameStyle = {
+    fontSize: "20px",
+    fontWeight: "600",
+    fontFamily: "inter, sans-serif",
+    textAlign: "center",
+    color: "#555",
+    lineHeight: "2",
+    py: 1,
+  };
+
+  return (
+    <Box
+      display="flex"
+      alignItems="center"
+      justifyContent="center"
+      sx={{ py: 1 }}
+    >
+      {isEditing ? (
+        <>
+          <Input
+            value={tempName}
+            onChange={(e) => setTempName(e.target.value)}
+            autoFocus
+            sx={{
+              ...columnNameStyle,
+            }}
+          />
+          <IconButton onClick={handleSaveClick} size="small">
+            <CheckIcon fontSize="small" />
+          </IconButton>
+        </>
+      ) : (
+        <>
+          <Typography
+            sx={{
+              ...columnNameStyle,
+            }}
+          >
+            {columnName}
+          </Typography>
+
+          <IconButton onClick={handleEditClick} size="small">
+            <EditIcon
+              sx={{ color: "rgba(0,0,0,0.3)", paddingLeft: "1px" }}
+              fontSize="small"
+            />
+          </IconButton>
+        </>
+      )}
+    </Box>
+  );
+};
+
 function DroppableColumn({ id, cards }: DroppableColumnProps) {
   const { setNodeRef, isOver } = useDroppable({
     id,
@@ -188,16 +273,6 @@ function DroppableColumn({ id, cards }: DroppableColumnProps) {
     ...scrollBarStyle,
   };
 
-  const columnNameStyle = {
-    fontSize: "20px",
-    fontWeight: "600",
-    fontFamily: "inter, sans-serif",
-    textAlign: "center",
-    color: "#555",
-    lineHeight: "2",
-    py: 5,
-  };
-
   return (
     <SortableContext
       id={id}
@@ -205,8 +280,8 @@ function DroppableColumn({ id, cards }: DroppableColumnProps) {
       strategy={verticalListSortingStrategy}
     >
       <Box ref={setNodeRef} sx={style}>
-        <Typography sx={columnNameStyle}>{id}</Typography>
-        <Box>
+        <EditableColumnName columnName={id} />
+        <Box sx={{ ...style, overflow: "auto" }}>
           {cards.length > 0 ? (
             cards.map((card) => <SortableCard key={card.id} {...card} />)
           ) : (
@@ -409,6 +484,7 @@ function DragAndDropPage() {
           ) : null}
         </DragOverlay>
       </DndContext>
+
       <Box
         sx={{
           position: "sticky",

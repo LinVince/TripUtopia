@@ -53,8 +53,8 @@ let sharedCardsData: Card[] = [];
 
 const scrollBarStyle = {
   "&::-webkit-scrollbar": {
-    width: "2px",
-    height: "2px",
+    width: "5px",
+    height: "5px",
     // Set the width of the scrollbar
   },
   "&::-webkit-scrollbar-thumb": {
@@ -182,17 +182,17 @@ const EditableColumnName = ({ columnName }: { columnName: string }) => {
     setIsEditing(false);
 
     if (columnName !== tempName) {
-      // Create a new object with the updated key
-      const updatedData = { ...userItineraryData };
-
-      // If the columnName key exists, rename it to tempName
-      if (userItineraryData.hasOwnProperty(columnName)) {
-        updatedData[tempName] = updatedData[columnName]; // Copy data to new key
-        delete updatedData[columnName]; // Remove the old key
-      }
+      // Create a new object
+      const newObj = Object.entries(userItineraryData).reduce(
+        (acc, [key, value]) => {
+          acc[key === columnName ? tempName : key] = value;
+          return acc;
+        },
+        {} as UserCardsData
+      );
 
       // Update global state
-      setUserItineraryData(updatedData);
+      setUserItineraryData(newObj);
     }
   };
 
@@ -239,7 +239,7 @@ const EditableColumnName = ({ columnName }: { columnName: string }) => {
 
           <IconButton onClick={handleEditClick} size="small">
             <EditIcon
-              sx={{ color: "rgba(0,0,0,0.3)", paddingLeft: "1px" }}
+              sx={{ color: "rgba(0,0,0,0.2 )", paddingLeft: "1px" }}
               fontSize="small"
             />
           </IconButton>
@@ -537,7 +537,7 @@ const INITIAL_VIEW_STATE = {
   latitude: 25.02434493613632,
   longitude: 121.53592051950127,
   zoom: 16,
-  pitch: 0,
+  pitch: 1,
   bearing: 0,
   transitionDuration: 1000,
 };
@@ -1125,6 +1125,7 @@ function ItineraryPage() {
 }
 
 import SessionWrapper from "@/components/SessionWrapper";
+import { User } from "next-auth";
 export default function RenderDom() {
   return (
     <SessionWrapper>

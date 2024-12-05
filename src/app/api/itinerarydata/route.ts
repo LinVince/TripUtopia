@@ -2,6 +2,45 @@ import { NextRequest, NextResponse } from 'next/server';
 import dbConnect from '@/lib/mongodb';
 import itinerarydata from '@/models/itinerarydata';
 
+export async function GET(request: NextRequest) {
+  await dbConnect();
+
+  try {
+    const { searchParams } = new URL(request.url);
+    const email = searchParams.get('email');
+
+    if (!email) {
+      return NextResponse.json(
+        { success: false, message: 'Email is required' },
+        { status: 400 }
+      );
+    }
+
+    // Find the data by email
+    const existingData = await itinerarydata.findOne({ email });
+
+    if (existingData) {
+      // Return the found data
+      return NextResponse.json(
+        { success: true, data: existingData },
+        { status: 200 }
+      );
+    } else {
+      return NextResponse.json(
+        { success: false, message: 'No data found for the provided email' },
+        { status: 404 }
+      );
+    }
+  } catch (error) {
+    // Handle any other errors
+    return NextResponse.json(
+      { success: false, message: 'An error occurred', error: 'Unable to get data'},
+      { status: 500 }
+    );
+  }
+}
+
+
 export async function POST(request: NextRequest) {
   await dbConnect();
 

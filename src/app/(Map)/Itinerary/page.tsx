@@ -128,11 +128,8 @@ function SortableCard(card: Card) {
           }}
         >
           <Box>
-            <IconButton>
-              <DeleteOutlineOutlinedIcon
-                style={{ color: "#a5a5a5" }}
-                onClick={handleDeleteClick}
-              />
+            <IconButton onClick={handleDeleteClick}>
+              <DeleteOutlineOutlinedIcon style={{ color: "#a5a5a5" }} />
             </IconButton>
           </Box>
           <Box>
@@ -230,7 +227,7 @@ const EditableColumnName = ({ columnName }: { columnName: string }) => {
 
           <IconButton onClick={handleEditClick} size="small">
             <EditIcon
-              sx={{ color: "rgba(0,0,0,0.2 )", paddingLeft: "1px" }}
+              sx={{ color: "rgba(0,0,0,0.2 )", paddingLeft: "10px" }}
               fontSize="small"
             />
           </IconButton>
@@ -240,10 +237,13 @@ const EditableColumnName = ({ columnName }: { columnName: string }) => {
   );
 };
 
+import DeleteOutlinedIcon from "@mui/icons-material/DeleteOutlined";
 function DroppableColumn({ id, cards }: DroppableColumnProps) {
   const { setNodeRef, isOver } = useDroppable({
     id,
   });
+  const mapContext = useMapContext();
+  const { userItineraryData, setUserItineraryData } = mapContext;
 
   const style = {
     minWidth: "200px",
@@ -264,6 +264,13 @@ function DroppableColumn({ id, cards }: DroppableColumnProps) {
     ...scrollBarStyle,
   };
 
+  const handleColumnDeletion = () => {
+    const newObj = Object.fromEntries(
+      Object.entries(userItineraryData).filter(([key, value]) => key !== id)
+    );
+    setUserItineraryData(newObj);
+  };
+
   return (
     <SortableContext
       id={id}
@@ -271,7 +278,17 @@ function DroppableColumn({ id, cards }: DroppableColumnProps) {
       strategy={verticalListSortingStrategy}
     >
       <Box ref={setNodeRef} sx={style}>
-        <EditableColumnName columnName={id} />
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "center",
+          }}
+        >
+          <EditableColumnName columnName={id} />
+          <IconButton onClick={handleColumnDeletion}>
+            <DeleteOutlinedIcon style={{ color: "#cccccc" }} />
+          </IconButton>
+        </Box>
         <Box sx={{ ...style, overflow: "auto" }}>
           {cards.length > 0 ? (
             cards.map((card) => <SortableCard key={card.id} {...card} />)

@@ -21,6 +21,7 @@ export async function GET(request: NextRequest) {
 
     if (existingData) {
       // Return the found data
+      console.log(existingData)
       return NextResponse.json(
         { success: true, data: existingData },
         { status: 200 }

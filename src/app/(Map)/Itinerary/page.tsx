@@ -39,15 +39,6 @@ interface Card {
 interface UserCardsData {
   [columnName: string]: Card[];
 }
-
-// Cards data created by users (GET API with User's Email)
-let userCardsData: UserCardsData = {
-  Day1: [],
-  Default: [],
-  Default_2: [],
-  Default_3: [],
-};
-
 // Cards data shared with users (GET API with User's Email)
 let sharedCardsData: Card[] = [];
 
@@ -1016,8 +1007,28 @@ const MapProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     placeID: string;
   } | null>(null);
 
-  const [userItineraryData, setUserItineraryData] =
-    useState<UserCardsData>(userCardsData);
+  const [userItineraryData, setUserItineraryData] = useState<UserCardsData>({});
+
+  const { data: session } = useSession();
+  const email = session?.user?.email;
+
+  //use hook to fetch UserCardData
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        if (email) {
+          const response = await axios.get("/api/itinerarydata", {
+            params: { email },
+          });
+          setUserItineraryData(response.data.data.data);
+          console.log(response.data.data.data);
+        }
+      } catch (error) {
+        console.log("Error fetching the data");
+      }
+    };
+    fetchData();
+  }, [email]);
 
   const [mapDetailOpen, setMapDetailOpen] = useState(false);
   const [itineraryWindowExpanded, setItineraryWindowExpanded] = useState(false);

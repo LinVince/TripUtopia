@@ -1020,8 +1020,11 @@ const MapProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
           const response = await axios.get("/api/itinerarydata", {
             params: { email },
           });
-          setUserItineraryData(response.data.data.data);
-          console.log(response.data.data.data);
+          if (response.status === 200) {
+            setUserItineraryData(response.data.data.data);
+          } else if (response.status === 201) {
+            setUserItineraryData({ default: [] });
+          }
         }
       } catch (error) {
         console.log("Error fetching the data");

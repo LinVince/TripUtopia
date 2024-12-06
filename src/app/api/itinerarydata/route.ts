@@ -18,18 +18,17 @@ export async function GET(request: NextRequest) {
 
     // Find the data by email
     const existingData = await itinerarydata.findOne({ email });
-
+    console.log(existingData)
     if (existingData) {
       // Return the found data
-      console.log(existingData)
       return NextResponse.json(
         { success: true, data: existingData },
         { status: 200 }
       );
     } else {
       return NextResponse.json(
-        { success: false, message: 'No data found for the provided email' },
-        { status: 404 }
+        { success: true , message: 'Giving default data' },
+        { status: 201 }
       );
     }
   } catch (error) {

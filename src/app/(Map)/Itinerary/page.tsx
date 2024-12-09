@@ -15,6 +15,8 @@ import {
   Chip,
   IconButton,
   Link,
+  List,
+  ListItem,
   Rating,
   Typography,
 } from "@mui/material";
@@ -167,6 +169,15 @@ const EditableColumnName = ({ columnName }: { columnName: string }) => {
   };
 
   const handleSaveClick = () => {
+    if (
+      Object.keys(userItineraryData).includes(tempName) &&
+      tempName !== columnName
+    ) {
+      alert("The name is already taken. ");
+
+      return;
+    }
+
     setIsEditing(false);
 
     if (columnName !== tempName) {
@@ -442,15 +453,15 @@ function DragAndDropPage() {
   };
 
   function addNewDay(day: string) {
-    if (!(day in userItineraryData)) {
-      setUserItineraryData((preState: any) => ({ ...preState, day: [] }));
+    if (!Object.keys(userItineraryData).includes(day)) {
+      setUserItineraryData((prevState: any) => ({ ...prevState, [day]: [] }));
     } else {
-      console.log(`The key '${day}' already exists in userCardsData.`);
+      alert(`Please rename the latest column before creating a new one.`);
     }
   }
 
   const handleAddColumnClick = () => {
-    addNewDay("Day3");
+    addNewDay("To_Be_Renamed");
   };
 
   const { data: session } = useSession();
@@ -538,7 +549,7 @@ function DragAndDropPage() {
 
 import React, { useEffect, useRef, useState } from "react";
 import { Loader } from "@googlemaps/js-api-loader";
-
+import "./styles.css";
 const GOOGLE_MAPS_API_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAP_API;
 const GOOGLE_MAP_ID = process.env.NEXT_PUBLIC_GOOGLE_MAP_ID;
 const INITIAL_VIEW_STATE = {
@@ -580,6 +591,7 @@ function GoogleMap() {
       try {
         // Load the maps library
         const { Map } = await loader.importLibrary("maps");
+        const { Autocomplete } = await loader.importLibrary("places");
 
         const mapOptions = {
           center: { lat: viewState.latitude, lng: viewState.longitude },
@@ -591,6 +603,49 @@ function GoogleMap() {
         };
 
         googleMapInstance.current = new Map(mapRef.current, mapOptions);
+
+        const autocompleteInput = document.createElement("input");
+        autocompleteInput.type = "text";
+        autocompleteInput.style.fontSize = "16px";
+        autocompleteInput.placeholder = "Search location...";
+        autocompleteInput.style.width = "400px";
+        autocompleteInput.style.height = "60px";
+        autocompleteInput.style.margin = "10px auto";
+        autocompleteInput.style.padding = "0px 20px";
+        autocompleteInput.style.border = "0px solid #ccc";
+        autocompleteInput.style.borderRadius = "30px";
+        autocompleteInput.style.position = "absolute";
+        autocompleteInput.style.top = "10px";
+        autocompleteInput.style.left = "50%";
+        autocompleteInput.style.transform = "translateX(-50%)";
+        autocompleteInput.style.zIndex = "0";
+        autocompleteInput.addEventListener("focus", () => {
+          autocompleteInput.style.outline = "none";
+          autocompleteInput.style.border = "0px";
+        });
+
+        mapRef.current?.appendChild(autocompleteInput);
+
+        const autocomplete = new Autocomplete(autocompleteInput, {
+          fields: ["geometry", "place_id", "formatted_address", "name"],
+        });
+
+        autocomplete.addListener("place_changed", () => {
+          const place = autocomplete.getPlace();
+          if (place?.geometry?.location) {
+            const latitude = place.geometry.location.lat();
+            const longitude = place.geometry.location.lng();
+            const placeID = place?.place_id || "";
+
+            setLocationData({ latitude, longitude, placeID });
+            googleMapInstance.current.panTo({ lat: latitude, lng: longitude });
+            setViewState((prevState) => ({
+              ...prevState,
+              latitude,
+              longitude,
+            }));
+          }
+        });
 
         // Add the click listener here after initializing the map
         googleMapInstance.current.addListener("click", async (event: any) => {
@@ -716,6 +771,15 @@ function PlaceDetail() {
 
   const [placeData, setPlaceData] = useState<Place | null>();
 
+  const [OpenColumnList, setOpenColumnList] = useState("none");
+  const HandleOpenColumnList = () => {
+    if (OpenColumnList === "none") {
+      setOpenColumnList("block");
+    } else {
+      setOpenColumnList("none");
+    }
+  };
+
   useEffect(() => {
     const fetchPlaceData = async () => {
       if (locationData) {
@@ -776,7 +840,7 @@ function PlaceDetail() {
     if (locationData) setMapDetailOpen(true);
   }, [locationData]);
 
-  const UpdateItinerary = async () => {
+  const UpdateItinerary = async (column: string) => {
     if (locationData) {
       const { PlacesService } = await loader.importLibrary("places");
       const request = {
@@ -803,8 +867,10 @@ function PlaceDetail() {
 
           setUserItineraryData((preState: any) => ({
             ...preState,
-            Day1: [...preState.Day1, newCard],
+            [column]: [...preState[column], newCard],
           }));
+
+          setOpenColumnList("none");
         }
       });
     } else {
@@ -835,10 +901,51 @@ function PlaceDetail() {
               backgroundColor: "white",
             },
           }}
-          onClick={UpdateItinerary}
+          onClick={HandleOpenColumnList}
         >
           <AddLocationOutlinedIcon color="primary" />
         </IconButton>
+        <Box
+          sx={{
+            display: OpenColumnList,
+            position: "absolute",
+            zIndex: 1035,
+            left: 10,
+            top: 50,
+            backgroundColor: "#fcfcfc",
+            minWidth: "100%",
+            borderRadius: "10px",
+            boxShadow: "20px solid black",
+            height: "auto",
+            p: 1,
+          }}
+        >
+          <Typography
+            sx={{
+              p: 2,
+              textAlign: "center",
+              fontWeight: 500,
+              fontSize: "1.1rem",
+            }}
+          >
+            Add to one of the columns
+          </Typography>
+          <List>
+            {Object.keys(userItineraryData).map((k, i) => {
+              return (
+                <>
+                  <Divider />
+                  <ListItem
+                    style={{ padding: 20, cursor: "pointer" }}
+                    onClick={() => UpdateItinerary(k)}
+                  >
+                    {k}
+                  </ListItem>
+                </>
+              );
+            })}
+          </List>
+        </Box>
         <IconButton
           sx={{
             p: 3,
@@ -1157,6 +1264,8 @@ function ItineraryPage() {
 
 import SessionWrapper from "@/components/SessionWrapper";
 import { User } from "next-auth";
+import { userInfo } from "os";
+import { SafetyDivider } from "@mui/icons-material";
 export default function RenderDom() {
   return (
     <SessionWrapper>

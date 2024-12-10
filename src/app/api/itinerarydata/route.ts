@@ -8,7 +8,9 @@ export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const email = searchParams.get('email');
-
+    const tripID = searchParams.get('tripID');
+    console.log(searchParams)
+    // Validate email
     if (!email) {
       return NextResponse.json(
         { success: false, message: 'Email is required' },
@@ -16,8 +18,16 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Find the data by email
-    const existingData = await itinerarydata.findOne({ email });
+    // Validate tripID
+    if (!tripID) {
+      return NextResponse.json(
+        { success: false, message: 'tripID is required' },
+        { status: 400 }
+      );
+    }
+
+    // Find the data by tripID and email
+    const existingData = await itinerarydata.findOne({ tripID, email });
     console.log(existingData)
     if (existingData) {
       // Return the found data
@@ -46,10 +56,11 @@ export async function POST(request: NextRequest) {
 
   try {
     const body = await request.json();  
-    const { email } = body;
+    console.log(body)
+    const { tripID, tripName, description, email } = body;
 
-    // Check if a document with the user's email already exists
-    const existingData = await itinerarydata.findOne({ email });
+
+    const existingData = await itinerarydata.findOne({ email, tripID });
 
     if (existingData) {
       // Update the existing document with the new data

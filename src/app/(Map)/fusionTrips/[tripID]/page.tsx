@@ -1,4 +1,5 @@
 "use client";
+
 import {
   DndContext,
   useDroppable,
@@ -321,6 +322,7 @@ import axios from "axios";
 function DragAndDropPage() {
   const mapContext = useMapContext();
   const {
+    tripID,
     userItineraryData,
     setUserItineraryData,
     itineraryWindowExpanded,
@@ -471,6 +473,7 @@ function DragAndDropPage() {
       const response = await axios.post("/api/itinerarydata", {
         data: userItineraryData,
         email: session?.user?.email,
+        tripID: tripID,
       });
       console.log("Data sent:", response.data);
     } catch (error) {
@@ -1108,12 +1111,14 @@ function PlaceDetail() {
 }
 
 import { useContext, createContext } from "react";
-
+import { useRouter } from "next/navigation";
 interface MapContextType {
   locationData: { latitude: number; longitude: number; placeID: string } | null;
   setLocationData: (
     data: { latitude: number; longitude: number; placeID: string } | null
   ) => void;
+  tripID: string;
+  setTripID: (data: string) => void;
   userItineraryData: UserCardsData;
   setUserItineraryData: (data: any) => void;
   mapDetailOpen: boolean;
@@ -1124,7 +1129,10 @@ interface MapContextType {
 
 const MapContext = createContext<MapContextType | undefined>(undefined);
 
-const MapProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+const MapProvider: React.FC<{ children: React.ReactNode; params: any }> = ({
+  children,
+  params,
+}) => {
   const [locationData, setLocationData] = useState<{
     latitude: number;
     longitude: number;
@@ -1132,7 +1140,7 @@ const MapProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   } | null>(null);
 
   const [userItineraryData, setUserItineraryData] = useState<UserCardsData>({});
-
+  const [tripID, setTripID] = useState(params.tripID);
   const { data: session } = useSession();
   const email = session?.user?.email;
 
@@ -1142,12 +1150,10 @@ const MapProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
       try {
         if (email) {
           const response = await axios.get("/api/itinerarydata", {
-            params: { email },
+            params: { email, tripID },
           });
           if (response.status === 200) {
             setUserItineraryData(response.data.data.data);
-          } else if (response.status === 201) {
-            setUserItineraryData({ default: [] });
           }
         }
       } catch (error) {
@@ -1165,6 +1171,8 @@ const MapProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
       value={{
         locationData,
         setLocationData,
+        tripID,
+        setTripID,
         userItineraryData,
         setUserItineraryData,
         mapDetailOpen,
@@ -1187,7 +1195,6 @@ const useMapContext = () => {
 };
 
 import { useSession } from "next-auth/react";
-import { useRouter } from "next/navigation";
 
 function ItineraryPage() {
   const mapContext = useMapContext();
@@ -1263,13 +1270,10 @@ function ItineraryPage() {
 }
 
 import SessionWrapper from "@/components/SessionWrapper";
-import { User } from "next-auth";
-import { userInfo } from "os";
-import { SafetyDivider } from "@mui/icons-material";
-export default function RenderDom() {
+export default function RenderDom({ params }: { params: any }) {
   return (
     <SessionWrapper>
-      <MapProvider>
+      <MapProvider params={params}>
         <ItineraryPage />
       </MapProvider>
     </SessionWrapper>

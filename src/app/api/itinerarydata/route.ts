@@ -9,7 +9,7 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const email = searchParams.get('email');
     const tripID = searchParams.get('tripID');
-    console.log(searchParams)
+    
     // Validate email
     if (!email) {
       return NextResponse.json(
@@ -18,11 +18,13 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Validate tripID
-    if (!tripID) {
+    // if only email is provided
+    if (email && !tripID) {
+      const tripData = await itinerarydata.find({email});
+
       return NextResponse.json(
-        { success: false, message: 'tripID is required' },
-        { status: 400 }
+        { success: true, data: tripData },
+        { status: 200 }
       );
     }
 
@@ -79,5 +81,40 @@ export async function POST(request: NextRequest) {
     } else {
       return NextResponse.json({ success: false, error: 'Unknown error' }, { status: 400 });
     }
+  }
+}
+
+export async function DELETE(request: NextRequest) {
+  await dbConnect();
+
+  try {
+    const { searchParams } = new URL(request.url);
+    const tripID = searchParams.get('tripID');
+
+    if (!tripID) {
+      return NextResponse.json(
+        { success: false, message: 'tripID is required' },
+        { status: 400 }
+      );
+    }
+
+    const deletedData = await itinerarydata.findOneAndDelete({ tripID });
+
+    if (deletedData) {
+      return NextResponse.json(
+        { success: true, message: 'Trip deleted successfully', data: deletedData },
+        { status: 200 }
+      );
+    } else {
+      return NextResponse.json(
+        { success: false, message: 'Trip not found' },
+        { status: 404 }
+      );
+    }
+  } catch (error:any) {
+    return NextResponse.json(
+      { success: false, message: 'An error occurred', error: error.message },
+      { status: 500 }
+    );
   }
 }

@@ -1,6 +1,18 @@
 "use client";
 
-import { Box, Button, Modal, TextField } from "@mui/material";
+import {
+  Box,
+  Button,
+  Divider,
+  IconButton,
+  List,
+  ListItem,
+  ListItemSecondaryAction,
+  ListItemText,
+  Modal,
+  TextField,
+  Typography,
+} from "@mui/material";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -36,9 +48,9 @@ function TripInputBox({
 }) {
   const [tripInfo, setTripInfo] = useState<TripInfo | null>(null);
   const { data: session } = useSession();
-
+  const router = useRouter();
   const handleCancel = () => {
-    setTripInfo(null); // Reset the form (if needed)
+    setTripInfo(null);
     onClose();
   };
 
@@ -60,6 +72,7 @@ function TripInputBox({
     } else {
       alert("Please enter the name and description.");
     }
+    router.refresh();
   };
 
   return (
@@ -125,11 +138,15 @@ function TripInputBox({
     </Modal>
   );
 }
+import EditIcon from "@mui/icons-material/Edit";
+import DeleteOutlinedIcon from "@mui/icons-material/DeleteOutlined";
 
 function TripMenu() {
   const router = useRouter();
   const { data: session, status } = useSession();
   const [open, setOpen] = useState(false);
+  const [trips, setTrips] = useState([]);
+  const email = session?.user?.email;
 
   useEffect(() => {
     if (status === "loading") return;
@@ -146,19 +163,99 @@ function TripMenu() {
     setOpen(false);
   };
 
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        if (email) {
+          const response = await axios.get("/api/itinerarydata", {
+            params: { email },
+          });
+          console.log(response);
+          if (response.status === 200) {
+            setTrips(response.data.data);
+          }
+        }
+      } catch (error) {
+        console.log("Error fetching the data.");
+      }
+    };
+    fetchData();
+  }, [open, email]);
+
+  const openNewTab = (tripId: string) => {
+    const url = `fishnTrips/${tripId}`;
+    window.open(url, "_blank"); // Open in a new tab
+  };
+
+  const handleEdit = (tripId: string) => {
+    openNewTab(tripId);
+  };
+
+  const handleDelete = async (tripId: string) => {
+    try {
+      const response = await axios.delete("/api/itinerarydata", {
+        params: { tripID: tripId },
+      });
+      if (response.status === 200) {
+        setTrips((prevTrips) =>
+          prevTrips.filter((trip: TripInfo) => trip.tripID !== tripId)
+        );
+      }
+    } catch (error) {
+      console.error("Error deleting the trip.");
+    }
+  };
+
   return (
     <div>
-      <Button variant="contained" color="primary" onClick={handleOpenTripInput}>
+      <Button
+        variant="contained"
+        color="primary"
+        onClick={handleOpenTripInput}
+        sx={{ mb: 2 }}
+      >
         Create Trip
       </Button>
       <TripInputBox open={open} onClose={handleCloseTripInput} />
+
+      <Typography variant="h6" sx={{ mb: 2 }}>
+        My Trips
+      </Typography>
+      <List>
+        {trips.map((trip: TripInfo) => (
+          <Box key={trip.tripID}>
+            <ListItem>
+              <ListItemText
+                primary={trip.tripName}
+                secondary={trip.description}
+              />
+              <ListItemSecondaryAction>
+                <IconButton
+                  edge="end"
+                  aria-label="edit"
+                  onClick={() => handleEdit(trip.tripID)}
+                >
+                  <EditIcon />
+                </IconButton>
+                <IconButton
+                  edge="end"
+                  aria-label="delete"
+                  onClick={() => handleDelete(trip.tripID)}
+                >
+                  <DeleteOutlinedIcon />
+                </IconButton>
+              </ListItemSecondaryAction>
+            </ListItem>
+            <Divider />
+          </Box>
+        ))}
+      </List>
     </div>
   );
 }
 
 import SessionWrapper from "@/components/SessionWrapper";
-import { prepareStackTrace } from "postcss/lib/css-syntax-error";
-export default () => {
+export default function ReactDom() {
   return (
     <>
       <SessionWrapper>
@@ -166,4 +263,4 @@ export default () => {
       </SessionWrapper>
     </>
   );
-};
+}

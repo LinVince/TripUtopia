@@ -559,7 +559,7 @@ const INITIAL_VIEW_STATE = {
   latitude: 25.02434493613632,
   longitude: 121.53592051950127,
   zoom: 16,
-  pitch: 0,
+  pitch: 1,
   bearing: 0,
   transitionDuration: 1000,
 };

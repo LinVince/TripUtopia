@@ -1,4 +1,5 @@
 "use client";
+
 import {
   DndContext,
   useDroppable,
@@ -15,6 +16,8 @@ import {
   Chip,
   IconButton,
   Link,
+  List,
+  ListItem,
   Rating,
   Typography,
 } from "@mui/material";
@@ -39,19 +42,13 @@ interface Card {
 interface UserCardsData {
   [columnName: string]: Card[];
 }
-
-// Cards data created by users (GET API with User's Email)
-let userCardsData: UserCardsData = {
-  Day1: [],
-  Day2: [],
-};
-
 // Cards data shared with users (GET API with User's Email)
 let sharedCardsData: Card[] = [];
 
 const scrollBarStyle = {
   "&::-webkit-scrollbar": {
-    width: "4px",
+    width: "5px",
+    height: "5px",
     // Set the width of the scrollbar
   },
   "&::-webkit-scrollbar-thumb": {
@@ -134,11 +131,8 @@ function SortableCard(card: Card) {
           }}
         >
           <Box>
-            <IconButton>
-              <DeleteOutlineOutlinedIcon
-                style={{ color: "#a5a5a5" }}
-                onClick={handleDeleteClick}
-              />
+            <IconButton onClick={handleDeleteClick}>
+              <DeleteOutlineOutlinedIcon style={{ color: "#a5a5a5" }} />
             </IconButton>
           </Box>
           <Box>
@@ -161,26 +155,45 @@ interface DroppableColumnProps {
   cards: Card[];
 }
 
-function DroppableColumn({ id, cards }: DroppableColumnProps) {
-  const { setNodeRef, isOver } = useDroppable({
-    id,
-  });
+import { Input } from "@mui/material";
+import EditIcon from "@mui/icons-material/Edit";
+import CheckIcon from "@mui/icons-material/Check";
 
-  const style = {
-    width: "280px",
-    maxWidth: "350px",
-    height: "90vh",
-    display: "flex",
-    flexDirection: "column",
-    alignItems: "center",
-    paddingBottom: 5,
-    px: 2,
-    backgroundColor: "white",
-    borderRadius: "10px",
-    mx: 1,
-    flex: 1,
-    overflow: "auto",
-    ...scrollBarStyle,
+const EditableColumnName = ({ columnName }: { columnName: string }) => {
+  const [isEditing, setIsEditing] = useState(false);
+  const [tempName, setTempName] = useState(columnName);
+  const mapContext = useMapContext();
+  const { userItineraryData, setUserItineraryData } = mapContext;
+
+  const handleEditClick = () => {
+    setIsEditing(true);
+  };
+
+  const handleSaveClick = () => {
+    if (
+      Object.keys(userItineraryData).includes(tempName) &&
+      tempName !== columnName
+    ) {
+      alert("The name is already taken. ");
+
+      return;
+    }
+
+    setIsEditing(false);
+
+    if (columnName !== tempName) {
+      // Create a new object
+      const newObj = Object.entries(userItineraryData).reduce(
+        (acc, [key, value]) => {
+          acc[key === columnName ? tempName : key] = value;
+          return acc;
+        },
+        {} as UserCardsData
+      );
+
+      // Update global state
+      setUserItineraryData(newObj);
+    }
   };
 
   const columnNameStyle = {
@@ -190,7 +203,84 @@ function DroppableColumn({ id, cards }: DroppableColumnProps) {
     textAlign: "center",
     color: "#555",
     lineHeight: "2",
-    py: 5,
+    py: 1,
+  };
+
+  return (
+    <Box
+      display="flex"
+      alignItems="center"
+      justifyContent="center"
+      sx={{ py: 1 }}
+    >
+      {isEditing ? (
+        <>
+          <Input
+            value={tempName}
+            onChange={(e) => setTempName(e.target.value)}
+            autoFocus
+            sx={{
+              ...columnNameStyle,
+            }}
+          />
+          <IconButton onClick={handleSaveClick} size="small">
+            <CheckIcon fontSize="small" />
+          </IconButton>
+        </>
+      ) : (
+        <>
+          <Typography
+            sx={{
+              ...columnNameStyle,
+            }}
+          >
+            {columnName}
+          </Typography>
+
+          <IconButton onClick={handleEditClick} size="small">
+            <EditIcon
+              sx={{ color: "rgba(0,0,0,0.2 )", paddingLeft: "10px" }}
+              fontSize="small"
+            />
+          </IconButton>
+        </>
+      )}
+    </Box>
+  );
+};
+
+import DeleteOutlinedIcon from "@mui/icons-material/DeleteOutlined";
+function DroppableColumn({ id, cards }: DroppableColumnProps) {
+  const { setNodeRef, isOver } = useDroppable({
+    id,
+  });
+  const mapContext = useMapContext();
+  const { userItineraryData, setUserItineraryData } = mapContext;
+
+  const style = {
+    minWidth: "200px",
+    maxWidth: "350px",
+    height: "85vh",
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    paddingBottom: 5,
+    px: 2,
+    marginTop: 5,
+    backgroundColor: "white",
+    borderRadius: "10px",
+    mx: 1,
+    flex: 1,
+    overflowX: "auto",
+    overflowY: "auto",
+    ...scrollBarStyle,
+  };
+
+  const handleColumnDeletion = () => {
+    const newObj = Object.fromEntries(
+      Object.entries(userItineraryData).filter(([key, value]) => key !== id)
+    );
+    setUserItineraryData(newObj);
   };
 
   return (
@@ -200,8 +290,18 @@ function DroppableColumn({ id, cards }: DroppableColumnProps) {
       strategy={verticalListSortingStrategy}
     >
       <Box ref={setNodeRef} sx={style}>
-        <Typography sx={columnNameStyle}>{id}</Typography>
-        <Box>
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "center",
+          }}
+        >
+          <EditableColumnName columnName={id} />
+          <IconButton onClick={handleColumnDeletion}>
+            <DeleteOutlinedIcon style={{ color: "#cccccc" }} />
+          </IconButton>
+        </Box>
+        <Box sx={{ ...style, overflow: "auto" }}>
           {cards.length > 0 ? (
             cards.map((card) => <SortableCard key={card.id} {...card} />)
           ) : (
@@ -213,9 +313,21 @@ function DroppableColumn({ id, cards }: DroppableColumnProps) {
   );
 }
 
+import FullscreenOutlinedIcon from "@mui/icons-material/FullscreenOutlined";
+import FullscreenExitOutlinedIcon from "@mui/icons-material/FullscreenExitOutlined";
+import AddOutlinedIcon from "@mui/icons-material/AddOutlined";
+import SaveAltOutlinedIcon from "@mui/icons-material/SaveAltOutlined";
+import axios from "axios";
+
 function DragAndDropPage() {
   const mapContext = useMapContext();
-  const { userItineraryData, setUserItineraryData } = mapContext;
+  const {
+    tripID,
+    userItineraryData,
+    setUserItineraryData,
+    itineraryWindowExpanded,
+    setItineraryWindowExpanded,
+  } = mapContext;
   const [activeId, setActiveId] = useState<number | null>(null);
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -228,10 +340,12 @@ function DragAndDropPage() {
     height: "auto",
     display: "flex",
     flexDirection: "row",
-    flexWrap: "wrap",
+    justifyContent: "space-between",
     backgroundColor: "white",
-    px: 1,
+    px: 0,
     overflow: "auto",
+    position: "relative",
+    ...scrollBarStyle,
   };
 
   function findContainer(id: number | string) {
@@ -336,6 +450,37 @@ function DragAndDropPage() {
     setActiveId(null);
   }
 
+  const handleExpandedClick = () => {
+    setItineraryWindowExpanded(!itineraryWindowExpanded);
+  };
+
+  function addNewDay(day: string) {
+    if (!Object.keys(userItineraryData).includes(day)) {
+      setUserItineraryData((prevState: any) => ({ ...prevState, [day]: [] }));
+    } else {
+      alert(`Please rename the latest column before creating a new one.`);
+    }
+  }
+
+  const handleAddColumnClick = () => {
+    addNewDay("To_Be_Renamed");
+  };
+
+  const { data: session } = useSession();
+
+  const handleSave = async () => {
+    try {
+      const response = await axios.post("/api/itinerarydata", {
+        data: userItineraryData,
+        email: session?.user?.email,
+        tripID: tripID,
+      });
+      console.log("Data sent:", response.data);
+    } catch (error) {
+      console.error("There was an error submitting the form:", error);
+    }
+  };
+
   return (
     <Box sx={wrapperStyle}>
       <DndContext
@@ -345,9 +490,11 @@ function DragAndDropPage() {
         onDragOver={handleDragOver}
         onDragEnd={handleDragEnd}
       >
-        {Object.entries(userItineraryData).map(([columnName, cards]) => (
-          <DroppableColumn key={columnName} id={columnName} cards={cards} />
-        ))}
+        <Box sx={{ display: "flex", justifyContent: "flex-start" }}>
+          {Object.entries(userItineraryData).map(([columnName, cards]) => (
+            <DroppableColumn key={columnName} id={columnName} cards={cards} />
+          ))}
+        </Box>
 
         <DragOverlay>
           {activeId ? (
@@ -359,13 +506,53 @@ function DragAndDropPage() {
           ) : null}
         </DragOverlay>
       </DndContext>
+
+      <Box
+        sx={{
+          position: "sticky",
+          right: 0,
+          display: "flex",
+          flexDirection: "column",
+          px: 2,
+          justifyContent: "space-between",
+          backgroundColor: "white",
+        }}
+      >
+        <IconButton onClick={handleExpandedClick}>
+          {itineraryWindowExpanded ? (
+            <FullscreenExitOutlinedIcon />
+          ) : (
+            <FullscreenOutlinedIcon />
+          )}
+        </IconButton>
+        <IconButton
+          onClick={handleAddColumnClick}
+          sx={{
+            "&:hover": {
+              backgroundColor: "white",
+            },
+          }}
+        >
+          <AddOutlinedIcon />
+        </IconButton>
+        <IconButton
+          onClick={handleSave}
+          sx={{
+            "&:hover": {
+              backgroundColor: "white",
+            },
+          }}
+        >
+          <SaveAltOutlinedIcon />
+        </IconButton>
+      </Box>
     </Box>
   );
 }
 
 import React, { useEffect, useRef, useState } from "react";
 import { Loader } from "@googlemaps/js-api-loader";
-
+import "./styles.css";
 const GOOGLE_MAPS_API_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAP_API;
 const GOOGLE_MAP_ID = process.env.NEXT_PUBLIC_GOOGLE_MAP_ID;
 const INITIAL_VIEW_STATE = {
@@ -407,6 +594,7 @@ function GoogleMap() {
       try {
         // Load the maps library
         const { Map } = await loader.importLibrary("maps");
+        const { Autocomplete } = await loader.importLibrary("places");
 
         const mapOptions = {
           center: { lat: viewState.latitude, lng: viewState.longitude },
@@ -418,6 +606,49 @@ function GoogleMap() {
         };
 
         googleMapInstance.current = new Map(mapRef.current, mapOptions);
+
+        const autocompleteInput = document.createElement("input");
+        autocompleteInput.type = "text";
+        autocompleteInput.style.fontSize = "16px";
+        autocompleteInput.placeholder = "Search location...";
+        autocompleteInput.style.width = "400px";
+        autocompleteInput.style.height = "60px";
+        autocompleteInput.style.margin = "10px auto";
+        autocompleteInput.style.padding = "0px 20px";
+        autocompleteInput.style.border = "0px solid #ccc";
+        autocompleteInput.style.borderRadius = "30px";
+        autocompleteInput.style.position = "absolute";
+        autocompleteInput.style.top = "10px";
+        autocompleteInput.style.left = "50%";
+        autocompleteInput.style.transform = "translateX(-50%)";
+        autocompleteInput.style.zIndex = "0";
+        autocompleteInput.addEventListener("focus", () => {
+          autocompleteInput.style.outline = "none";
+          autocompleteInput.style.border = "0px";
+        });
+
+        mapRef.current?.appendChild(autocompleteInput);
+
+        const autocomplete = new Autocomplete(autocompleteInput, {
+          fields: ["geometry", "place_id", "formatted_address", "name"],
+        });
+
+        autocomplete.addListener("place_changed", () => {
+          const place = autocomplete.getPlace();
+          if (place?.geometry?.location) {
+            const latitude = place.geometry.location.lat();
+            const longitude = place.geometry.location.lng();
+            const placeID = place?.place_id || "";
+
+            setLocationData({ latitude, longitude, placeID });
+            googleMapInstance.current.panTo({ lat: latitude, lng: longitude });
+            setViewState((prevState) => ({
+              ...prevState,
+              latitude,
+              longitude,
+            }));
+          }
+        });
 
         // Add the click listener here after initializing the map
         googleMapInstance.current.addListener("click", async (event: any) => {
@@ -496,6 +727,7 @@ interface Place {
   html_attributions: string[];
   photos: google.maps.places.PlacePhoto[];
   reviews: google.maps.places.PlaceReview[];
+  user_ratings_total: number;
   url: string;
 }
 
@@ -542,6 +774,15 @@ function PlaceDetail() {
 
   const [placeData, setPlaceData] = useState<Place | null>();
 
+  const [OpenColumnList, setOpenColumnList] = useState("none");
+  const HandleOpenColumnList = () => {
+    if (OpenColumnList === "none") {
+      setOpenColumnList("block");
+    } else {
+      setOpenColumnList("none");
+    }
+  };
+
   useEffect(() => {
     const fetchPlaceData = async () => {
       if (locationData) {
@@ -557,6 +798,7 @@ function PlaceDetail() {
             "formatted_phone_number",
             "photos",
             "reviews",
+            "user_ratings_total",
             "url",
           ],
         };
@@ -577,6 +819,7 @@ function PlaceDetail() {
                 html_attributions: place.html_attributions ?? [],
                 photos: place.photos ?? [],
                 reviews: place.reviews ?? [],
+                user_ratings_total: place.user_ratings_total ?? 0,
                 url: place.url ?? "",
               };
               setPlaceData(validatedPlaceData);
@@ -600,7 +843,7 @@ function PlaceDetail() {
     if (locationData) setMapDetailOpen(true);
   }, [locationData]);
 
-  const UpdateItinerary = async () => {
+  const UpdateItinerary = async (column: string) => {
     if (locationData) {
       const { PlacesService } = await loader.importLibrary("places");
       const request = {
@@ -627,8 +870,10 @@ function PlaceDetail() {
 
           setUserItineraryData((preState: any) => ({
             ...preState,
-            Day1: [...preState.Day1, newCard],
+            [column]: [...preState[column], newCard],
           }));
+
+          setOpenColumnList("none");
         }
       });
     } else {
@@ -659,10 +904,51 @@ function PlaceDetail() {
               backgroundColor: "white",
             },
           }}
-          onClick={UpdateItinerary}
+          onClick={HandleOpenColumnList}
         >
           <AddLocationOutlinedIcon color="primary" />
         </IconButton>
+        <Box
+          sx={{
+            display: OpenColumnList,
+            position: "absolute",
+            zIndex: 1035,
+            left: 10,
+            top: 50,
+            backgroundColor: "#fcfcfc",
+            minWidth: "100%",
+            borderRadius: "10px",
+            boxShadow: "20px solid black",
+            height: "auto",
+            p: 1,
+          }}
+        >
+          <Typography
+            sx={{
+              p: 2,
+              textAlign: "center",
+              fontWeight: 500,
+              fontSize: "1.1rem",
+            }}
+          >
+            Add to one of the columns
+          </Typography>
+          <List>
+            {Object.keys(userItineraryData).map((k, i) => {
+              return (
+                <>
+                  <Divider />
+                  <ListItem
+                    style={{ padding: 20, cursor: "pointer" }}
+                    onClick={() => UpdateItinerary(k)}
+                  >
+                    {k}
+                  </ListItem>
+                </>
+              );
+            })}
+          </List>
+        </Box>
         <IconButton
           sx={{
             p: 3,
@@ -733,7 +1019,7 @@ function PlaceDetail() {
           <Box display="flex" alignItems="center" mb={2}>
             <Rating value={placeData.rating} readOnly precision={0.1} />
             <Typography variant="body2" color="textSecondary" ml={1}>
-              {placeData.rating.toFixed(1)}
+              {placeData.rating.toFixed(1)} ({placeData.user_ratings_total})
             </Typography>
           </Box>
         )}
@@ -825,40 +1111,74 @@ function PlaceDetail() {
 }
 
 import { useContext, createContext } from "react";
-
+import { useRouter } from "next/navigation";
 interface MapContextType {
   locationData: { latitude: number; longitude: number; placeID: string } | null;
   setLocationData: (
     data: { latitude: number; longitude: number; placeID: string } | null
   ) => void;
+  tripID: string;
+  setTripID: (data: string) => void;
   userItineraryData: UserCardsData;
   setUserItineraryData: (data: any) => void;
   mapDetailOpen: boolean;
   setMapDetailOpen: (data: boolean) => void;
+  itineraryWindowExpanded: boolean;
+  setItineraryWindowExpanded: (data: boolean) => void;
 }
+
 const MapContext = createContext<MapContextType | undefined>(undefined);
 
-const MapProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+const MapProvider: React.FC<{ children: React.ReactNode; params: any }> = ({
+  children,
+  params,
+}) => {
   const [locationData, setLocationData] = useState<{
     latitude: number;
     longitude: number;
     placeID: string;
   } | null>(null);
 
-  const [userItineraryData, setUserItineraryData] =
-    useState<UserCardsData>(userCardsData);
+  const [userItineraryData, setUserItineraryData] = useState<UserCardsData>({});
+  const [tripID, setTripID] = useState(params.tripID);
+  const { data: session } = useSession();
+  const email = session?.user?.email;
+
+  //use hook to fetch UserCardData
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        if (email) {
+          const response = await axios.get("/api/itinerarydata", {
+            params: { email, tripID },
+          });
+          if (response.status === 200) {
+            setUserItineraryData(response.data.data.data);
+          }
+        }
+      } catch (error) {
+        console.log("Error fetching the data");
+      }
+    };
+    fetchData();
+  }, [email]);
 
   const [mapDetailOpen, setMapDetailOpen] = useState(false);
+  const [itineraryWindowExpanded, setItineraryWindowExpanded] = useState(false);
 
   return (
     <MapContext.Provider
       value={{
         locationData,
         setLocationData,
+        tripID,
+        setTripID,
         userItineraryData,
         setUserItineraryData,
         mapDetailOpen,
         setMapDetailOpen,
+        itineraryWindowExpanded,
+        setItineraryWindowExpanded,
       }}
     >
       {children}
@@ -874,9 +1194,23 @@ const useMapContext = () => {
   return context;
 };
 
+import { useSession } from "next-auth/react";
+
 function ItineraryPage() {
   const mapContext = useMapContext();
-  const { locationData, mapDetailOpen } = mapContext;
+  const { locationData, mapDetailOpen, itineraryWindowExpanded } = mapContext;
+  const router = useRouter();
+  const { data: session, status } = useSession();
+
+  useEffect(() => {
+    if (status === "loading") return;
+
+    if (!session) {
+      router.push("/Auth");
+    }
+
+    console.log(session);
+  }, [session, status, router]);
 
   return (
     <>
@@ -886,11 +1220,12 @@ function ItineraryPage() {
           display: "flex",
           justifyContent: "center",
           alignItems: "center",
+          overflow: "hidden",
         }}
       >
         <Box
           sx={{
-            width: "40%",
+            width: itineraryWindowExpanded ? "100%" : "40%",
             backgroundColor: "black",
           }}
         >
@@ -899,7 +1234,7 @@ function ItineraryPage() {
 
         <Box
           sx={{
-            width: "60%",
+            width: itineraryWindowExpanded ? "0%" : "60%",
             height: "100vh",
             position: "relative",
           }}
@@ -934,10 +1269,13 @@ function ItineraryPage() {
   );
 }
 
-export default function RenderDom() {
+import SessionWrapper from "@/components/SessionWrapper";
+export default function RenderDom({ params }: { params: any }) {
   return (
-    <MapProvider>
-      <ItineraryPage />
-    </MapProvider>
+    <SessionWrapper>
+      <MapProvider params={params}>
+        <ItineraryPage />
+      </MapProvider>
+    </SessionWrapper>
   );
 }

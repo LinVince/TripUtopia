@@ -1,0 +1,38 @@
+/* Style the suggestion box container */
+.pac-container {
+    font-size: 16px; /* Match the search box font size */
+    border-radius: 30px; /* Match the search box border radius */
+    overflow: hidden; /* Ensure rounded corners */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Add subtle shadow for consistency */
+    border: 0; /* Remove default border */
+  }
+  
+  /* Style individual suggestion items */
+  .pac-item {
+    font-size: 16px; /* Match the search box font size */
+    padding: 10px 20px; /* Adjust padding for consistency */
+    border-bottom: 1px solid #f0f0f0; /* Add subtle separator */
+  }
+  
+  /* Style hover state for suggestion items */
+  .pac-item:hover {
+    background-color: #f7f7f7; /* Light gray background on hover */
+  }
+  
+  /* Style the selected item (via keyboard) */
+  .pac-item-selected {
+    background-color: #e0f7fa; /* Light teal background for selection */
+    color: #00796b; /* Teal text color */
+  }
+  
+  /* Style the matched text */
+  .pac-matched {
+    font-weight: bold; /* Highlight matched text */
+    color: #333; /* Ensure visibility */
+  }
+  
+  /* Optional: Add custom icon styling */
+  .pac-icon {
+    display: none; /* Hide default icons for cleaner look */
+  }
+  

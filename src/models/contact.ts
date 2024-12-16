@@ -7,3 +7,5 @@ const contactSchema = new mongoose.Schema({
 }, { timestamps: true });
 
 export default mongoose.models.Contact || mongoose.model('Contact', contactSchema);
+
+

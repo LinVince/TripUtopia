@@ -1,5 +1,6 @@
 "use client";
-
+import React, { useEffect, useRef, useState } from "react";
+import "./styles.css";
 import {
   DndContext,
   useDroppable,
@@ -11,15 +12,19 @@ import {
   useSensors,
 } from "@dnd-kit/core";
 import {
+  Paper,
+  Divider,
   Box,
   Button,
   Chip,
+  CircularProgress,
   IconButton,
   Link,
   List,
   ListItem,
   Rating,
   Typography,
+  Input,
 } from "@mui/material";
 import {
   useSortable,
@@ -28,74 +33,105 @@ import {
   arrayMove,
   sortableKeyboardCoordinates,
 } from "@dnd-kit/sortable";
+import { Loader } from "@googlemaps/js-api-loader";
+import { CSS } from "@dnd-kit/utilities";
+import {
+  DragIndicator as DragIndicatorIcon,
+  RoomOutlined as RoomOutlinedIcon,
+  DeleteOutlineOutlined as DeleteOutlineOutlinedIcon,
+  Edit as EditIcon,
+  Check as CheckIcon,
+  DeleteOutlined as DeleteOutlinedIcon,
+  FullscreenOutlined as FullscreenOutlinedIcon,
+  FullscreenExitOutlined as FullscreenExitOutlinedIcon,
+  AddOutlined as AddOutlinedIcon,
+  SaveAltOutlined as SaveAltOutlinedIcon,
+  AddLocationOutlined as AddLocationOutlinedIcon,
+  Close as CloseIcon,
+} from "@mui/icons-material";
+import axios from "axios";
+import dynamic from "next/dynamic";
+import { format } from "date-fns";
+
+// Fetch the ID and secret in local env
+const GOOGLE_MAPS_API_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAP_API;
+const GOOGLE_MAP_ID = process.env.NEXT_PUBLIC_GOOGLE_MAP_ID;
+
+// Load the Google Map API library
+const loader = new Loader({
+  apiKey: GOOGLE_MAPS_API_KEY || "",
+  libraries: ["maps", "places", "routes"],
+  version: "weekly",
+});
 
 // Card interface for typing the card objects
 interface Card {
   id: number;
-  name?: string;
+  name: string;
   longitude: number;
   latitude: number;
   placeID: string;
-  address?: string;
+  address: string;
 }
 
+// Data used to initialize MapContext
 interface UserCardsData {
   [columnName: string]: Card[];
 }
-// Cards data shared with users (GET API with User's Email)
-let sharedCardsData: Card[] = [];
 
+// Styles applied to all scrollbars
 const scrollBarStyle = {
   "&::-webkit-scrollbar": {
     width: "5px",
     height: "5px",
-    // Set the width of the scrollbar
   },
   "&::-webkit-scrollbar-thumb": {
-    backgroundColor: "#aaa", // Scrollbar thumb color
-    borderRadius: "10px", // Rounded scrollbar thumb
+    backgroundColor: "#aaa",
+    borderRadius: "10px",
   },
   "&::-webkit-scrollbar-track": {
-    backgroundColor: "#f1f1f1", // Scrollbar track color
+    backgroundColor: "#f1f1f1",
     borderRadius: "10px",
   },
 };
 
-// Make cards sortable
-import { CSS } from "@dnd-kit/utilities";
-import { Paper, Divider } from "@mui/material";
-import DragIndicatorIcon from "@mui/icons-material/DragIndicator";
-import RoomOutlinedIcon from "@mui/icons-material/RoomOutlined";
-import DeleteOutlineOutlinedIcon from "@mui/icons-material/DeleteOutlineOutlined";
-
+// Sortable card component with tourist attrach data
 function SortableCard(card: Card) {
+  // Fetch states, animation, events from useSortable
   const { attributes, listeners, setNodeRef, transform, transition } =
     useSortable({ id: card.id });
 
+  // Import setLocationData from mapContext
+  const mapContext = useMapContext();
+  const { setLocationData, setUserItineraryData } = mapContext;
+
+  // Set the style of the card
   const sortableStyle = {
     marginBottom: 20,
     transform: CSS.Transform.toString(transform),
     transition,
   };
 
-  const mapContext = useMapContext();
-
+  // Click the map icon on the card to pin the tourist attraction on the map
   const handleCardClick = () => {
-    const { setLocationData } = mapContext;
     setLocationData({
+      name: card.name,
+      address: card.address,
       latitude: card.latitude,
       longitude: card.longitude,
       placeID: card.placeID,
     });
   };
 
+  // Click the icon to delete the card
   const handleDeleteClick = () => {
-    const { setUserItineraryData } = mapContext;
     setUserItineraryData((preState: UserCardsData) => {
+      //Convert an array to an object
       const updatedState = Object.fromEntries(
+        // Remove the card with the matching id (output type: list)
         Object.entries(preState).map(([day, cards]) => [
           day,
-          cards.filter((c) => c.id !== card.id), // Remove the card with the matching id
+          cards.filter((c) => c.id !== card.id),
         ])
       );
       return updatedState;
@@ -103,99 +139,71 @@ function SortableCard(card: Card) {
   };
 
   return (
-    <div ref={setNodeRef} style={sortableStyle} {...attributes}>
-      <Paper
-        sx={(theme) => ({
-          p: 2,
-          margin: "auto",
-          maxWidth: 500,
-          flexGrow: 1,
-          backgroundColor: "#fff",
-          ...theme.applyStyles("dark", {
-            backgroundColor: "#1A2027",
-          }),
-        })}
-      >
-        <Typography gutterBottom variant="subtitle1" component="div">
-          {card.name}
-        </Typography>
-        <Typography variant="body2" color="#a5a5a5">
-          {card.address}
-        </Typography>
-        <Divider sx={{ marginY: 2 }} />
-        <Box
-          sx={{
-            display: "flex",
-            flexDirection: "row",
-            justifyContent: "space-between",
-          }}
+    <>
+      {/* SortableCard component */}
+      <Box ref={setNodeRef} style={sortableStyle} {...attributes}>
+        {/* Style of the card */}
+        <Paper
+          sx={(theme) => ({
+            p: 2,
+            margin: "auto",
+            maxWidth: 500,
+            flexGrow: 1,
+            backgroundColor: "#fff",
+          })}
         >
-          <Box>
-            <IconButton onClick={handleDeleteClick}>
-              <DeleteOutlineOutlinedIcon style={{ color: "#a5a5a5" }} />
-            </IconButton>
+          {/* Layout of the card information */}
+          <Typography gutterBottom variant="subtitle1" component="div">
+            {card.name}
+          </Typography>
+          <Typography variant="body2" color="#a5a5a5">
+            {card.address}
+          </Typography>
+          <Divider sx={{ marginY: 2 }} />
+
+          {/* Layout of the functional icons */}
+          <Box
+            sx={{
+              display: "flex",
+              flexDirection: "row",
+              justifyContent: "space-between",
+            }}
+          >
+            {/* Delete the card */}
+            <Box>
+              <IconButton onClick={handleDeleteClick}>
+                <DeleteOutlineOutlinedIcon style={{ color: "#a5a5a5" }} />
+              </IconButton>
+            </Box>
+            {/* Pin the card location on the map */}
+            <Box>
+              <IconButton onClick={handleCardClick}>
+                <RoomOutlinedIcon />
+              </IconButton>
+
+              {/* Drag the card */}
+              <IconButton {...listeners}>
+                <DragIndicatorIcon />
+              </IconButton>
+            </Box>
           </Box>
-          <Box>
-            <IconButton onClick={handleCardClick}>
-              <RoomOutlinedIcon />
-            </IconButton>
-            <IconButton {...listeners}>
-              <DragIndicatorIcon />
-            </IconButton>
-          </Box>
-        </Box>
-      </Paper>
-    </div>
+        </Paper>
+      </Box>
+    </>
   );
 }
 
-// Droppable Column component using useDroppable
-interface DroppableColumnProps {
-  id: string;
-  cards: Card[];
-}
-
-import { Input } from "@mui/material";
-import EditIcon from "@mui/icons-material/Edit";
-import CheckIcon from "@mui/icons-material/Check";
-
+// The editable name component on the DropableColumn
 const EditableColumnName = ({ columnName }: { columnName: string }) => {
+  // State of the editable name component
   const [isEditing, setIsEditing] = useState(false);
   const [tempName, setTempName] = useState(columnName);
+
+  // Import itineraryData from mapContext
   const mapContext = useMapContext();
   const { userItineraryData, setUserItineraryData } = mapContext;
 
-  const handleEditClick = () => {
-    setIsEditing(true);
-  };
-
-  const handleSaveClick = () => {
-    if (
-      Object.keys(userItineraryData).includes(tempName) &&
-      tempName !== columnName
-    ) {
-      alert("The name is already taken. ");
-
-      return;
-    }
-
-    setIsEditing(false);
-
-    if (columnName !== tempName) {
-      // Create a new object
-      const newObj = Object.entries(userItineraryData).reduce(
-        (acc, [key, value]) => {
-          acc[key === columnName ? tempName : key] = value;
-          return acc;
-        },
-        {} as UserCardsData
-      );
-
-      // Update global state
-      setUserItineraryData(newObj);
-    }
-  };
-
+  // Style of the component
   const columnNameStyle = {
     fontSize: "20px",
     fontWeight: "600",
@@ -206,6 +214,47 @@ const EditableColumnName = ({ columnName }: { columnName: string }) => {
     py: 1,
   };
 
+  const iconStyle = {
+    color: "rgba(0,0,0,0.2 )",
+    paddingLeft: "10px",
+    fontSize: "small",
+  };
+
+  // Click to edit the name
+  const handleEditClick = () => {
+    setIsEditing(true);
+  };
+
+  // Click to exit edition and save the name
+  const handleSaveClick = () => {
+    if (
+      // Avoid duplicate the same name
+      Object.keys(userItineraryData).includes(tempName) &&
+      tempName !== columnName
+    ) {
+      alert("The name is already taken. ");
+      return;
+    }
+    setIsEditing(false);
+
+    if (columnName !== tempName) {
+      // Create a new object
+      const newObj = Object.entries(userItineraryData).reduce(
+        // reduce() builds a new object by processing each key-value pair.
+        (acc, [key, value]) => {
+          acc[key === columnName ? tempName : key] = value;
+          // Return acc in Each Iteration
+          return acc;
+        },
+        // initialize the acc object as {}
+        {} as UserCardsData
+      );
+
+      // Update global state
+      setUserItineraryData(newObj);
+    }
+  };
+
   return (
     <Box
       display="flex"
@@ -213,6 +262,7 @@ const EditableColumnName = ({ columnName }: { columnName: string }) => {
       justifyContent="center"
       sx={{ py: 1 }}
     >
+      {/*Edit Mode / Presentation Mode*/}
       {isEditing ? (
         <>
           <Input
@@ -223,8 +273,8 @@ const EditableColumnName = ({ columnName }: { columnName: string }) => {
               ...columnNameStyle,
             }}
           />
-          <IconButton onClick={handleSaveClick} size="small">
-            <CheckIcon fontSize="small" />
+          <IconButton onClick={handleSaveClick}>
+            <CheckIcon sx={{ ...iconStyle }} />
           </IconButton>
         </>
       ) : (
@@ -237,10 +287,11 @@ const EditableColumnName = ({ columnName }: { columnName: string }) => {
             {columnName}
           </Typography>
 
-          <IconButton onClick={handleEditClick} size="small">
+          <IconButton onClick={handleEditClick}>
             <EditIcon
-              sx={{ color: "rgba(0,0,0,0.2 )", paddingLeft: "10px" }}
-              fontSize="small"
+              sx={{
+                ...iconStyle,
+              }}
             />
           </IconButton>
         </>
@@ -249,15 +300,81 @@ const EditableColumnName = ({ columnName }: { columnName: string }) => {
   );
 };
 
-import DeleteOutlinedIcon from "@mui/icons-material/DeleteOutlined";
+// Google Map Routes library to get transport information
+function GetDirection({
+  origin,
+  destination,
+}: {
+  origin: string;
+  destination: string;
+}) {
+  // State of the components
+  const [distance, setDistance] = useState<string>();
+  const [duration, setDuration] = useState<string>();
+  const [travelMode, setTravelMode] = useState<string>();
+
+  // Get routes information between two cards
+  useEffect(() => {
+    const fetchData = async () => {
+      const { DirectionsService, TravelMode } = await loader.importLibrary(
+        "routes"
+      );
+      const directionInfo = new DirectionsService();
+
+      const request = {
+        origin: origin,
+        destination: destination,
+        travelMode: TravelMode.DRIVING,
+      };
+
+      directionInfo.route(request, (response) => {
+        if (
+          response?.routes?.length &&
+          response.routes[0]?.legs?.length &&
+          response.routes[0].legs[0]?.distance?.text &&
+          response.routes[0].legs[0]?.duration?.text &&
+          response.request.travelMode
+        ) {
+          setDistance(response.routes[0].legs[0].distance.text);
+          setDuration(response.routes[0].legs[0].duration.text);
+          if (response.request.travelMode) {
+            setTravelMode(response.request.travelMode.toLowerCase());
+          }
+        } else {
+          console.warn("Invalid response structure", response);
+        }
+      });
+    };
+
+    fetchData();
+  }, [origin, destination]);
+
+  return (
+    <Box>
+      {duration}, {distance} by {travelMode}
+    </Box>
+  );
+}
+
+// Droppable Column component using useDroppable
+interface DroppableColumnProps {
+  id: string;
+  cards: Card[];
+}
+
+// Droppable column that accomodates cards
 function DroppableColumn({ id, cards }: DroppableColumnProps) {
+  // Import useDroppable states
   const { setNodeRef, isOver } = useDroppable({
     id,
   });
+
+  // Import itineraryData from mapContext
   const mapContext = useMapContext();
   const { userItineraryData, setUserItineraryData } = mapContext;
 
-  const style = {
+  // Apply the style of the column
+  const columnStyle = {
     minWidth: "200px",
     maxWidth: "350px",
     height: "85vh",
@@ -276,6 +393,7 @@ function DroppableColumn({ id, cards }: DroppableColumnProps) {
     ...scrollBarStyle,
   };
 
+  // Delete the column
   const handleColumnDeletion = () => {
     const newObj = Object.fromEntries(
       Object.entries(userItineraryData).filter(([key, value]) => key !== id)
@@ -289,7 +407,7 @@ function DroppableColumn({ id, cards }: DroppableColumnProps) {
       items={cards.map((card) => card.id)}
       strategy={verticalListSortingStrategy}
     >
-      <Box ref={setNodeRef} sx={style}>
+      <Box ref={setNodeRef} sx={columnStyle}>
         <Box
           sx={{
             display: "flex",
@@ -301,9 +419,20 @@ function DroppableColumn({ id, cards }: DroppableColumnProps) {
             <DeleteOutlinedIcon style={{ color: "#cccccc" }} />
           </IconButton>
         </Box>
-        <Box sx={{ ...style, overflow: "auto" }}>
+        <Box sx={{ ...columnStyle, overflow: "auto" }}>
           {cards.length > 0 ? (
-            cards.map((card) => <SortableCard key={card.id} {...card} />)
+            cards.map((card, index) => (
+              <>
+                <SortableCard key={card.id} {...card} />
+                {/* Add GetDirection only if there is a next card */}
+                {index < cards.length - 1 && (
+                  <GetDirection
+                    origin={cards[index].address || ""}
+                    destination={cards[index + 1].address || ""}
+                  />
+                )}
+              </>
+            ))
           ) : (
             <p>Add or drag a site here</p>
           )}
@@ -313,21 +442,9 @@ function DroppableColumn({ id, cards }: DroppableColumnProps) {
   );
 }
 
-import FullscreenOutlinedIcon from "@mui/icons-material/FullscreenOutlined";
-import FullscreenExitOutlinedIcon from "@mui/icons-material/FullscreenExitOutlined";
-import AddOutlinedIcon from "@mui/icons-material/AddOutlined";
-import SaveAltOutlinedIcon from "@mui/icons-material/SaveAltOutlined";
-import axios from "axios";
-
+// Page with draggable cards and droppable columns
 function DragAndDropPage() {
-  const mapContext = useMapContext();
-  const {
-    tripID,
-    userItineraryData,
-    setUserItineraryData,
-    itineraryWindowExpanded,
-    setItineraryWindowExpanded,
-  } = mapContext;
+  // Import the states
   const [activeId, setActiveId] = useState<number | null>(null);
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -336,6 +453,17 @@ function DragAndDropPage() {
     })
   );
 
+  // Import trip(page)ID and itineraryData from mapContext
+  const mapContext = useMapContext();
+  const {
+    tripID,
+    userItineraryData,
+    setUserItineraryData,
+    itineraryWindowExpanded,
+    setItineraryWindowExpanded,
+  } = mapContext;
+
+  // Style of the component
   const wrapperStyle = {
     height: "auto",
     display: "flex",
@@ -348,6 +476,17 @@ function DragAndDropPage() {
     ...scrollBarStyle,
   };
 
+  const sideFunctionBarStyle = {
+    position: "sticky",
+    right: 0,
+    display: "flex",
+    flexDirection: "column",
+    px: 2,
+    justifyContent: "space-between",
+    backgroundColor: "white",
+  };
+
+  // Check the column where the column belongs to
   function findContainer(id: number | string) {
     if (typeof id === "number") {
       return Object.keys(userItineraryData).find((key) =>
@@ -360,11 +499,13 @@ function DragAndDropPage() {
     }
   }
 
+  // Stores the id of the active (dragged) card in the state variable activeId.
   function handleDragStart(event: any) {
     const { active } = event;
     setActiveId(active.id);
   }
 
+  //If the card is moved between different containers. Remove the activeCard from the activeContainer. Add the activeCard to the overContainer.
   function handleDragOver(event: any) {
     const { active, over } = event;
 
@@ -409,6 +550,7 @@ function DragAndDropPage() {
       return;
     }
 
+    // If the card is dropped within the same container. Identify the activeIndex (original position) and overIndex (new position). Use arrayMove to rearrange the card within the container.
     if (activeContainer === overContainer) {
       const activeIndex = userItineraryData[activeContainer].findIndex(
         (card) => card.id === active.id
@@ -427,7 +569,9 @@ function DragAndDropPage() {
           ),
         }));
       }
-    } else {
+    }
+    // If the card is dropped in a different container: Remove the card from the activeContainer. Add the card to the overContainer.
+    else {
       setUserItineraryData((prev: any) => {
         const activeItems = prev[activeContainer];
         const overItems = prev[overContainer];
@@ -446,28 +590,29 @@ function DragAndDropPage() {
         };
       });
     }
-
     setActiveId(null);
   }
 
+  // Expand the component to fullscreen
   const handleExpandedClick = () => {
     setItineraryWindowExpanded(!itineraryWindowExpanded);
   };
 
-  function addNewDay(day: string) {
-    if (!Object.keys(userItineraryData).includes(day)) {
-      setUserItineraryData((prevState: any) => ({ ...prevState, [day]: [] }));
+  // Add a new column
+  function addColumn() {
+    if (!Object.keys(userItineraryData).includes("New Column")) {
+      setUserItineraryData((prevState: any) => ({
+        ...prevState,
+        ["New Column"]: [],
+      }));
     } else {
       alert(`Please rename the latest column before creating a new one.`);
     }
   }
 
-  const handleAddColumnClick = () => {
-    addNewDay("To_Be_Renamed");
-  };
-
+  // Extract email valuefrom session
+  // Save the itineraryData to the database
   const { data: session } = useSession();
-
   const handleSave = async () => {
     try {
       const response = await axios.post("/api/itinerarydata", {
@@ -507,17 +652,8 @@ function DragAndDropPage() {
         </DragOverlay>
       </DndContext>
 
-      <Box
-        sx={{
-          position: "sticky",
-          right: 0,
-          display: "flex",
-          flexDirection: "column",
-          px: 2,
-          justifyContent: "space-between",
-          backgroundColor: "white",
-        }}
-      >
+      {/*Functions: Full screen, add column, save*/}
+      <Box sx={sideFunctionBarStyle}>
         <IconButton onClick={handleExpandedClick}>
           {itineraryWindowExpanded ? (
             <FullscreenExitOutlinedIcon />
@@ -525,24 +661,10 @@ function DragAndDropPage() {
             <FullscreenOutlinedIcon />
           )}
         </IconButton>
-        <IconButton
-          onClick={handleAddColumnClick}
-          sx={{
-            "&:hover": {
-              backgroundColor: "white",
-            },
-          }}
-        >
+        <IconButton onClick={addColumn}>
           <AddOutlinedIcon />
         </IconButton>
-        <IconButton
-          onClick={handleSave}
-          sx={{
-            "&:hover": {
-              backgroundColor: "white",
-            },
-          }}
-        >
+        <IconButton onClick={handleSave}>
           <SaveAltOutlinedIcon />
         </IconButton>
       </Box>
@@ -550,33 +672,130 @@ function DragAndDropPage() {
   );
 }
 
-import React, { useEffect, useRef, useState } from "react";
-import { Loader } from "@googlemaps/js-api-loader";
-import "./styles.css";
-const GOOGLE_MAPS_API_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAP_API;
-const GOOGLE_MAP_ID = process.env.NEXT_PUBLIC_GOOGLE_MAP_ID;
-const INITIAL_VIEW_STATE = {
-  latitude: 25.02434493613632,
-  longitude: 121.53592051950127,
-  zoom: 16,
-  pitch: 1,
-  bearing: 0,
-  transitionDuration: 1000,
-};
-
 function GoogleMap() {
+  // Initial viewState of the map
+  const INITIAL_VIEW_STATE = {
+    latitude: 25.02434493613632,
+    longitude: 121.53592051950127,
+    zoom: 16,
+    pitch: 1,
+    bearing: 0,
+    transitionDuration: 1000,
+  };
   const [viewState, setViewState] = useState(INITIAL_VIEW_STATE);
+
+  // Import location state from mapContext
   const mapContext = useMapContext();
   const { locationData, setLocationData } = mapContext;
+
+  // Set HTML elements
   const mapRef = useRef<any>(null);
   const googleMapInstance = useRef<any>(null);
 
-  const loader = new Loader({
-    apiKey: GOOGLE_MAPS_API_KEY || "",
-    libraries: ["places", "maps"],
-    version: "weekly",
-  });
+  useEffect(() => {
+    const loadMap = async () => {
+      try {
+        // Load the maps library
+        const { Map } = await loader.importLibrary("maps");
+        const { Autocomplete, PlacesService } = await loader.importLibrary(
+          "places"
+        );
 
+        const mapOptions = {
+          center: { lat: viewState.latitude, lng: viewState.longitude },
+          zoom: viewState.zoom,
+          mapId: GOOGLE_MAP_ID,
+          mapTypeControl: false,
+          streetViewControl: false,
+          tilt: 45,
+        };
+
+        // Refer to the map and set the style of the input
+        googleMapInstance.current = new Map(mapRef.current, mapOptions);
+
+        // Search the tourist attraction on the search bar
+        const autocompleteInput = document.createElement("input");
+        autocompleteInput.className = "autocomplete-input";
+        autocompleteInput.type = "text";
+        autocompleteInput.placeholder = "Search location...";
+        mapRef.current?.appendChild(autocompleteInput);
+
+        const autocomplete = new Autocomplete(autocompleteInput, {
+          fields: ["geometry", "place_id", "formatted_address", "name"],
+        });
+
+        autocomplete.addListener("place_changed", () => {
+          const place = autocomplete.getPlace();
+          if (place?.geometry?.location) {
+            const name = place.name ?? "";
+            const address = place.formatted_address ?? "";
+            const latitude = place.geometry.location.lat();
+            const longitude = place.geometry.location.lng();
+            const placeID = place?.place_id ?? "";
+
+            setLocationData({ name, address, latitude, longitude, placeID });
+            googleMapInstance.current.panTo({ lat: latitude, lng: longitude });
+            setViewState((prevState) => ({
+              ...prevState,
+              latitude,
+              longitude,
+            }));
+          }
+        });
+
+        // Add the click listener for the map
+        googleMapInstance.current.addListener("click", async (event: any) => {
+          const latitude = event.latLng.lat();
+          const longitude = event.latLng.lng();
+          const placeID = event.placeId;
+
+          if (placeID) {
+            // Get the place detail (name, address) through PlaceService
+            const request = {
+              placeId: placeID,
+              fields: ["name", "formatted_address"],
+            };
+            const dummyDiv = document.createElement("div");
+            const placesService = new PlacesService(dummyDiv);
+
+            placesService.getDetails(request, (place, status) => {
+              if (status === google.maps.places.PlacesServiceStatus.OK) {
+                const name = place?.name ?? "";
+                const address = place?.formatted_address ?? "";
+                setLocationData({
+                  name,
+                  address,
+                  latitude,
+                  longitude,
+                  placeID,
+                });
+              }
+              googleMapInstance.current.panTo({
+                lat: latitude,
+                lng: longitude,
+              });
+            });
+          } else {
+            // Handle cases without a place ID
+            setLocationData({
+              name: "",
+              address: "",
+              latitude,
+              longitude,
+              placeID: "",
+            });
+            googleMapInstance.current.panTo({ lat: latitude, lng: longitude });
+          }
+        });
+      } catch (error) {
+        console.error("Error loading Google Maps", error);
+      }
+    };
+
+    loadMap();
+  }, []);
+
+  // Change the viewState after clicking any spot on the map
   useEffect(() => {
     if (locationData) {
       setViewState((preState) => ({
@@ -589,97 +808,7 @@ function GoogleMap() {
     }
   }, [locationData]);
 
-  useEffect(() => {
-    const loadMap = async () => {
-      try {
-        // Load the maps library
-        const { Map } = await loader.importLibrary("maps");
-        const { Autocomplete } = await loader.importLibrary("places");
-
-        const mapOptions = {
-          center: { lat: viewState.latitude, lng: viewState.longitude },
-          zoom: viewState.zoom,
-          mapId: GOOGLE_MAP_ID,
-          mapTypeControl: false,
-          streetViewControl: false,
-          tilt: 45,
-        };
-
-        googleMapInstance.current = new Map(mapRef.current, mapOptions);
-
-        const autocompleteInput = document.createElement("input");
-        autocompleteInput.type = "text";
-        autocompleteInput.style.fontSize = "16px";
-        autocompleteInput.placeholder = "Search location...";
-        autocompleteInput.style.width = "400px";
-        autocompleteInput.style.height = "60px";
-        autocompleteInput.style.margin = "10px auto";
-        autocompleteInput.style.padding = "0px 20px";
-        autocompleteInput.style.border = "0px solid #ccc";
-        autocompleteInput.style.borderRadius = "30px";
-        autocompleteInput.style.position = "absolute";
-        autocompleteInput.style.top = "10px";
-        autocompleteInput.style.left = "50%";
-        autocompleteInput.style.transform = "translateX(-50%)";
-        autocompleteInput.style.zIndex = "0";
-        autocompleteInput.addEventListener("focus", () => {
-          autocompleteInput.style.outline = "none";
-          autocompleteInput.style.border = "0px";
-        });
-
-        mapRef.current?.appendChild(autocompleteInput);
-
-        const autocomplete = new Autocomplete(autocompleteInput, {
-          fields: ["geometry", "place_id", "formatted_address", "name"],
-        });
-
-        autocomplete.addListener("place_changed", () => {
-          const place = autocomplete.getPlace();
-          if (place?.geometry?.location) {
-            const latitude = place.geometry.location.lat();
-            const longitude = place.geometry.location.lng();
-            const placeID = place?.place_id || "";
-
-            setLocationData({ latitude, longitude, placeID });
-            googleMapInstance.current.panTo({ lat: latitude, lng: longitude });
-            setViewState((prevState) => ({
-              ...prevState,
-              latitude,
-              longitude,
-            }));
-          }
-        });
-
-        // Add the click listener here after initializing the map
-        googleMapInstance.current.addListener("click", async (event: any) => {
-          const latitude = event.latLng.lat();
-          const longitude = event.latLng.lng();
-          const placeID = event.placeId;
-
-          setLocationData({ latitude, longitude, placeID });
-          googleMapInstance.current.panTo({ lat: latitude, lng: longitude });
-          /*if (placeID) {
-            try {
-              const { PlacesService } = await loader.importLibrary("places");
-              const placesService = new PlacesService(
-                googleMapInstance.current
-              );
-              
-            } catch (error) {
-              console.error(
-                "Error loading PlacesService or fetching details",
-                error
-              );
-            }
-          }*/
-        });
-      } catch (error) {
-        console.error("Error loading Google Maps", error);
-      }
-    };
-    loadMap();
-  }, []);
-
+  // Smoothly transition after viewState changes
   useEffect(() => {
     if (googleMapInstance.current) {
       googleMapInstance.current.panTo({
@@ -689,22 +818,6 @@ function GoogleMap() {
     }
   }, [viewState]);
 
-  /*const fetchPlaceDetails = (placesService: any, placeID: string) => {
-    if (placeID) {
-      const request = {
-        placeId: placeID,
-        fields: ["name", "formatted_address"],
-      };
-      placesService.getDetails(request, (place: any, status: any) => {
-        if (status === google.maps.places.PlacesServiceStatus.OK) {
-          console.log(place);
-        } else {
-          console.error("Error fetching place details", status);
-        }
-      });
-    }
-  };*/
-
   return (
     <div
       ref={mapRef}
@@ -713,10 +826,7 @@ function GoogleMap() {
   );
 }
 
-import dynamic from "next/dynamic";
-import AddLocationOutlinedIcon from "@mui/icons-material/AddLocationOutlined";
-import { format } from "date-fns";
-import CloseIcon from "@mui/icons-material/Close";
+// Define the interface of the placeDetail component
 interface Place {
   formatted_address: string;
   formatted_phone_number: string;
@@ -731,6 +841,100 @@ interface Place {
   url: string;
 }
 
+// Weather information in the placeDetail
+function Weather({
+  longitude,
+  latitude,
+}: {
+  longitude: number | undefined;
+  latitude: number | undefined;
+}) {
+  // Set the state
+  const [weatherInfo, setWeatherInfo] = useState<any>(null);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [error, setError] = useState<string | null>(null);
+
+  // Set the style of the weather information block
+  const style = {
+    display: "flex",
+    flexDirection: "column",
+    justifyContent: "flex-start",
+    mb: 1,
+    p: 1,
+    backgroundColor: "#ffffff",
+    borderRadius: "4px",
+    boxShadow: "0 1px 3px rgba(0, 0, 0, 0.1)",
+  };
+
+  // fetch weather data through the public API
+  useEffect(() => {
+    const fetchWeatherData = async () => {
+      setIsLoading(true);
+      setError(null);
+
+      const params = {
+        latitude: latitude,
+        longitude: longitude,
+        daily: "temperature_2m_max,temperature_2m_min,precipitation_sum",
+        timezone: "auto",
+      };
+
+      const url = "https://api.open-meteo.com/v1/forecast";
+
+      try {
+        const response = await axios.get(url, { params });
+        const data = response.data;
+
+        if (!data || !data.daily) {
+          throw new Error("Daily data not found in the response");
+        }
+
+        setWeatherInfo(data.daily);
+      } catch (error) {
+        setError("Error fetching weather data");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchWeatherData();
+  }, [longitude, latitude]);
+
+  return (
+    <Box
+      sx={{
+        mt: 3,
+        borderRadius: "8px",
+        maxWidth: "100%",
+      }}
+    >
+      <Typography gutterBottom sx={{ fontWeight: 600 }}>
+        Weather Forecast
+      </Typography>
+
+      {isLoading ? (
+        <CircularProgress />
+      ) : (
+        weatherInfo?.time?.map((date: any, i: number) => (
+          <Box key={i} sx={style}>
+            <Typography variant="body1" sx={{ minWidth: "12ch" }}>
+              {date.slice(5)}
+            </Typography>
+            <Typography variant="body1" sx={{ minWidth: "15ch" }}>
+              {weatherInfo.temperature_2m_min[i].toFixed(1)}°C ~{" "}
+              {weatherInfo.temperature_2m_max[i].toFixed(1)}°C
+            </Typography>
+            <Typography variant="body1" sx={{ minWidth: "15ch" }}>
+              Precipitation: {weatherInfo.precipitation_sum[i].toFixed(1)} mm
+            </Typography>
+          </Box>
+        ))
+      )}
+    </Box>
+  );
+}
+
+// Place details powered by Google Map
 function PlaceDetail() {
   const PlaceOverview = dynamic(
     () =>
@@ -753,28 +957,20 @@ function PlaceDetail() {
       ),
     { ssr: false }
   );
+  // Set the states
+  const [placeData, setPlaceData] = useState<Place | null>();
+  const [OpenColumnList, setOpenColumnList] = useState("none");
 
+  // Import mapContext states and functions
   const mapContext = useMapContext();
   const {
     locationData,
-    setLocationData,
     userItineraryData,
     setUserItineraryData,
-    mapDetailOpen,
     setMapDetailOpen,
   } = mapContext;
 
-  const loader = new Loader({
-    apiKey: GOOGLE_MAPS_API_KEY || "",
-    libraries: ["places", "maps"],
-    version: "weekly",
-  });
-
-  const dummyDiv = document.createElement("div");
-
-  const [placeData, setPlaceData] = useState<Place | null>();
-
-  const [OpenColumnList, setOpenColumnList] = useState("none");
+  // Pop up box to choose which column to add the card
   const HandleOpenColumnList = () => {
     if (OpenColumnList === "none") {
       setOpenColumnList("block");
@@ -783,6 +979,7 @@ function PlaceDetail() {
     }
   };
 
+  // Fetch data about place details
   useEffect(() => {
     const fetchPlaceData = async () => {
       if (locationData) {
@@ -802,13 +999,12 @@ function PlaceDetail() {
             "url",
           ],
         };
+        const dummyDiv = document.createElement("div");
         const placesService = new PlacesService(dummyDiv);
 
-        // Call placesService.getDetails or other relevant methods here
         placesService.getDetails(request, (place, status) => {
           if (status === google.maps.places.PlacesServiceStatus.OK) {
             if (place) {
-              console.log(place);
               const validatedPlaceData: Place = {
                 formatted_address: place.formatted_address ?? "",
                 formatted_phone_number: place.formatted_phone_number ?? "",
@@ -825,7 +1021,6 @@ function PlaceDetail() {
               setPlaceData(validatedPlaceData);
             }
           } else {
-            // Handle any error or failure to retrieve data
             console.error("Failed to load place details");
           }
         });
@@ -839,43 +1034,43 @@ function PlaceDetail() {
     setMapDetailOpen(false);
   };
 
+  // If locationData changes, automatically open the place detail box
   useEffect(() => {
     if (locationData) setMapDetailOpen(true);
   }, [locationData]);
 
+  // Add a card by with the placeDetail information of the tourist attraction
   const UpdateItinerary = async (column: string) => {
     if (locationData) {
-      const { PlacesService } = await loader.importLibrary("places");
-      const request = {
-        placeId: locationData.placeID,
-        fields: ["name", "formatted_address"],
+      // Get the list of all values' id
+      const idArray = Object.values(userItineraryData).flatMap((column) =>
+        column.map((item) => item.id)
+      );
+
+      //const maxID = idArray.length > 0 ? Math.max(...idArray) : 0;
+      const newCardID =
+        idArray.length > 0
+          ? (Array.from(
+              { length: Math.max(...idArray) + 1 },
+              (_, index) => index + 1
+            ).find((i) => !idArray.includes(i)) as number)
+          : 1;
+
+      const newCard: Card = {
+        id: newCardID,
+        name: locationData.name,
+        placeID: locationData.placeID,
+        address: locationData.address,
+        latitude: locationData.latitude,
+        longitude: locationData.longitude,
       };
-      const placesService = new PlacesService(dummyDiv);
+      console.log(userItineraryData);
+      setUserItineraryData((preState: any) => ({
+        ...preState,
+        [column]: [...preState[column], newCard],
+      }));
 
-      placesService.getDetails(request, (place, status) => {
-        if (status === google.maps.places.PlacesServiceStatus.OK) {
-          const totalItems = Object.values(userItineraryData).reduce(
-            (acc, columnList) => acc + columnList.length,
-            0
-          );
-
-          const newCard: Card = {
-            id: totalItems + 1,
-            name: place?.name,
-            placeID: locationData.placeID,
-            address: place?.formatted_address,
-            latitude: locationData.latitude,
-            longitude: locationData.longitude,
-          };
-
-          setUserItineraryData((preState: any) => ({
-            ...preState,
-            [column]: [...preState[column], newCard],
-          }));
-
-          setOpenColumnList("none");
-        }
-      });
+      setOpenColumnList("none");
     } else {
       console.log("Cannot connect.");
     }
@@ -1097,7 +1292,7 @@ function PlaceDetail() {
             target="_blank"
             sx={{ textDecoration: "none" }}
           >
-            <Typography>More on Google Maps</Typography>
+            <Typography sx={{ py: 2 }}>More on Google Maps</Typography>
           </Link>
         )}
         {/*<PlaceOverview place={locationData?.placeID}>
@@ -1105,6 +1300,11 @@ function PlaceDetail() {
             Directions
           </PlaceDirectionsButton>
         </PlaceOverview>*/}
+        <Divider />
+        <Weather
+          longitude={locationData?.longitude}
+          latitude={locationData?.latitude}
+        />
       </Box>
     </div>
   );
@@ -1113,9 +1313,21 @@ function PlaceDetail() {
 import { useContext, createContext } from "react";
 import { useRouter } from "next/navigation";
 interface MapContextType {
-  locationData: { latitude: number; longitude: number; placeID: string } | null;
+  locationData: {
+    name: string;
+    address: string;
+    latitude: number;
+    longitude: number;
+    placeID: string;
+  } | null;
   setLocationData: (
-    data: { latitude: number; longitude: number; placeID: string } | null
+    data: {
+      name: string;
+      address: string;
+      latitude: number;
+      longitude: number;
+      placeID: string;
+    } | null
   ) => void;
   tripID: string;
   setTripID: (data: string) => void;
@@ -1134,6 +1346,8 @@ const MapProvider: React.FC<{ children: React.ReactNode; params: any }> = ({
   params,
 }) => {
   const [locationData, setLocationData] = useState<{
+    name: string;
+    address: string;
     latitude: number;
     longitude: number;
     placeID: string;

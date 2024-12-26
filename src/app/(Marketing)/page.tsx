@@ -1,5 +1,6 @@
 import * as React from "react";
 import Banner from "@/components/Banner";
+import Carousell from "@/components/Carousell";
 import { Box, Typography } from "@mui/material";
 import type { Metadata } from "next";
 import AnimatedPointSphere from "@/components/DotSpere3D";
@@ -138,6 +139,15 @@ export default function Home() {
             tapestry of experiences, memories, and connections that transcend
             boundaries. Join us in this vibrant community and make your mark!
           </Typography>
+        </Box>
+        {/*Follow us on Instagram (text and picture) */}
+        <Box flex="1 1 100%" flexDirection="column" py={{ xs: 5, md: 10 }}>
+          <Typography className="body_heading" textAlign="center">
+            Follow our Instagram{" "}
+            <span style={{ color: "#F77737" }}>@triputopia1000 </span>for
+            upcoming events!
+          </Typography>
+          <Carousell />
         </Box>
         <CookieConsent hasConsent={hasConsent} />
         <Box

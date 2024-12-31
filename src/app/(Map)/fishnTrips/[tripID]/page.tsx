@@ -15,7 +15,7 @@ import {
   Paper,
   Divider,
   Box,
-  Button,
+  Tooltip,
   Chip,
   CircularProgress,
   IconButton,
@@ -25,6 +25,8 @@ import {
   Rating,
   Typography,
   Input,
+  Modal,
+  Popover,
 } from "@mui/material";
 import {
   useSortable,
@@ -48,11 +50,12 @@ import {
   SaveAltOutlined as SaveAltOutlinedIcon,
   AddLocationOutlined as AddLocationOutlinedIcon,
   Close as CloseIcon,
+  MoreHorizOutlined as MoreHorizOutlinedIcon,
 } from "@mui/icons-material";
 import axios from "axios";
 import dynamic from "next/dynamic";
 import { format } from "date-fns";
-
+import Image from "next/image";
 // Fetch the ID and secret in local env
 const GOOGLE_MAPS_API_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAP_API;
 const GOOGLE_MAP_ID = process.env.NEXT_PUBLIC_GOOGLE_MAP_ID;
@@ -72,6 +75,7 @@ interface Card {
   latitude: number;
   placeID: string;
   address: string;
+  img: any;
 }
 
 // Data used to initialize MapContext
@@ -101,6 +105,9 @@ function SortableCard(card: Card) {
   const { attributes, listeners, setNodeRef, transform, transition } =
     useSortable({ id: card.id });
 
+  // Set the popover handle for function buttons
+  const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
+
   // Import setLocationData from mapContext
   const mapContext = useMapContext();
   const { setLocationData, setUserItineraryData } = mapContext;
@@ -110,6 +117,17 @@ function SortableCard(card: Card) {
     marginBottom: 20,
     transform: CSS.Transform.toString(transform),
     transition,
+  };
+
+  // Set the style of the name
+  const nameStyle = {
+    fontWeight: 600,
+    fontFamily: "inter, sans-serif",
+    px: 1,
+    overflow: "hidden",
+    textOverflow: "ellipsis",
+    whiteSpace: "nowrap",
+    maxWidth: "140px",
   };
 
   // Click the map icon on the card to pin the tourist attraction on the map
@@ -138,6 +156,17 @@ function SortableCard(card: Card) {
     });
   };
 
+  // Handle popover close/open
+  const handleOpenPopover = (event: React.MouseEvent<HTMLElement>) => {
+    setAnchorEl(event.currentTarget);
+  };
+
+  const handleClosePopover = () => {
+    setAnchorEl(null);
+  };
+
+  const open = Boolean(anchorEl);
+
   return (
     <>
       {/* SortableCard component */}
@@ -147,39 +176,79 @@ function SortableCard(card: Card) {
           sx={(theme) => ({
             p: 2,
             margin: "auto",
-            maxWidth: 500,
+            minWidth: "250px",
             flexGrow: 1,
             backgroundColor: "#fff",
+            display: "flex",
+            flexDirection: "row",
           })}
         >
           {/* Layout of the card information */}
-          <Typography gutterBottom variant="subtitle1" component="div">
-            {card.name}
-          </Typography>
-          <Typography variant="body2" color="#a5a5a5">
-            {card.address}
-          </Typography>
-          <Divider sx={{ marginY: 2 }} />
+          <Box
+            sx={{
+              display: "flex",
+              flexDirection: "row",
+              alignItems: "center",
+              minWidth: "150px",
+            }}
+          >
+            <Box
+              component="img"
+              src={card.img?.getUrl ? card.img.getUrl({ maxWidth: 250 }) : ""}
+              sx={{
+                height: "30px",
+                width: "30px",
+                borderRadius: "5px",
+                objectFit: "cover",
+              }}
+            />
+            <Tooltip
+              title={
+                <Typography sx={{ fontSize: "1.2rem" }}>{card.name}</Typography>
+              }
+              arrow
+            >
+              <Typography sx={nameStyle}>{card.name}</Typography>
+            </Tooltip>
+          </Box>
 
           {/* Layout of the functional icons */}
           <Box
             sx={{
               display: "flex",
-              flexDirection: "row",
-              justifyContent: "space-between",
+              flexDirection: "column",
             }}
           >
-            {/* Delete the card */}
             <Box>
-              <IconButton onClick={handleDeleteClick}>
-                <DeleteOutlineOutlinedIcon style={{ color: "#a5a5a5" }} />
+              <IconButton onClick={handleOpenPopover}>
+                <MoreHorizOutlinedIcon style={{ color: "#a5a5a5" }} />
               </IconButton>
-            </Box>
-            {/* Pin the card location on the map */}
-            <Box>
-              <IconButton onClick={handleCardClick}>
-                <RoomOutlinedIcon />
-              </IconButton>
+
+              {/* Delete the card */}
+              <Popover
+                open={open}
+                anchorEl={anchorEl}
+                onClose={handleClosePopover}
+                anchorOrigin={{
+                  vertical: "center",
+                  horizontal: "right",
+                }}
+                transformOrigin={{
+                  vertical: "center",
+                  horizontal: "left",
+                }}
+              >
+                <Box sx={{ display: "flex" }}>
+                  {/* Pin the card location on the map */}
+                  <IconButton onClick={handleCardClick}>
+                    <RoomOutlinedIcon />
+                  </IconButton>
+                  {/* Delete the card*/}
+                  <IconButton onClick={handleDeleteClick}>
+                    <DeleteOutlineOutlinedIcon style={{ color: "#a5a5a5" }} />
+                  </IconButton>
+                </Box>
+              </Popover>
 
               {/* Drag the card */}
               <IconButton {...listeners}>
@@ -375,19 +444,13 @@ function DroppableColumn({ id, cards }: DroppableColumnProps) {
 
   // Apply the style of the column
   const columnStyle = {
-    minWidth: "200px",
+    minWidth: "300px",
     maxWidth: "350px",
-    height: "85vh",
     display: "flex",
     flexDirection: "column",
     alignItems: "center",
-    paddingBottom: 5,
-    px: 2,
-    marginTop: 5,
-    backgroundColor: "white",
+    backgroundColor: "red",
     borderRadius: "10px",
-    mx: 1,
-    flex: 1,
     overflowX: "auto",
     overflowY: "auto",
     ...scrollBarStyle,
@@ -1063,8 +1126,10 @@ function PlaceDetail() {
         address: locationData.address,
         latitude: locationData.latitude,
         longitude: locationData.longitude,
+        img: placeData?.photos[0],
       };
-      console.log(userItineraryData);
+
+      console.log(newCard);
       setUserItineraryData((preState: any) => ({
         ...preState,
         [column]: [...preState[column], newCard],

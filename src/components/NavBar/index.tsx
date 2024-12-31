@@ -20,8 +20,8 @@ import { gsap } from "gsap";
 
 const inter = Inter({ subsets: ["latin"] });
 const pages = [
-  /*{ name: "Home", href: "/" },
-  { name: "Team", href: "/Team" },*/
+  /*{ name: "Home", href: "/" },*/
+  { name: "Blog", href: "/Blog" },
   { name: "Contact", href: "./#contact" },
 ];
 //const pages_m = [...pages, { name: "Contact", href: "/Contact" }];
@@ -148,8 +148,8 @@ function NavBar() {
               justifyContent: "end",
               alignItems: "center",
               flexGrow: 1,
-              gap: 15,
-              pr: 10,
+              gap: 5,
+              pr: 5,
             }}
           >
             {pages.map((page) => (

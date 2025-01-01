@@ -51,6 +51,7 @@ import {
   AddLocationOutlined as AddLocationOutlinedIcon,
   Close as CloseIcon,
   MoreHorizOutlined as MoreHorizOutlinedIcon,
+  BorderAllRounded,
 } from "@mui/icons-material";
 import axios from "axios";
 import dynamic from "next/dynamic";
@@ -123,11 +124,12 @@ function SortableCard(card: Card) {
   const nameStyle = {
     fontWeight: 600,
     fontFamily: "inter, sans-serif",
+    textAlign: "left",
     px: 1,
     overflow: "hidden",
     textOverflow: "ellipsis",
     whiteSpace: "nowrap",
-    maxWidth: "140px",
+    width: "140px",
   };
 
   // Click the map icon on the card to pin the tourist attraction on the map
@@ -176,7 +178,7 @@ function SortableCard(card: Card) {
           sx={(theme) => ({
             p: 2,
             margin: "auto",
-            minWidth: "250px",
+            width: "260px",
             flexGrow: 1,
             backgroundColor: "#fff",
             display: "flex",
@@ -189,12 +191,12 @@ function SortableCard(card: Card) {
               display: "flex",
               flexDirection: "row",
               alignItems: "center",
-              minWidth: "150px",
+              width: "170px",
             }}
           >
             <Box
               component="img"
-              src={card.img?.getUrl ? card.img.getUrl({ maxWidth: 250 }) : ""}
+              src={card.img}
               sx={{
                 height: "30px",
                 width: "30px",
@@ -216,7 +218,8 @@ function SortableCard(card: Card) {
           <Box
             sx={{
               display: "flex",
-              flexDirection: "column",
+              flexDirection: "row",
+              flexWrap: "nowrap",
             }}
           >
             <Box>
@@ -274,19 +277,20 @@ const EditableColumnName = ({ columnName }: { columnName: string }) => {
 
   // Style of the component
   const columnNameStyle = {
-    fontSize: "20px",
+    fontSize: "18px",
     fontWeight: "600",
     fontFamily: "inter, sans-serif",
-    textAlign: "center",
+    textAlign: "left",
     color: "#555",
     lineHeight: "2",
-    py: 1,
+    overflow: "hidden",
+    textOverflow: "ellipsis",
+    whiteSpace: "nowrap",
+    maxWidth: "240px",
   };
 
   const iconStyle = {
     color: "rgba(0,0,0,0.2 )",
-    paddingLeft: "10px",
-    fontSize: "small",
   };
 
   // Click to edit the name
@@ -325,12 +329,7 @@ const EditableColumnName = ({ columnName }: { columnName: string }) => {
   };
 
   return (
-    <Box
-      display="flex"
-      alignItems="center"
-      justifyContent="center"
-      sx={{ py: 1 }}
-    >
+    <Box display="flex" alignItems="center" sx={{ py: 1 }}>
       {/*Edit Mode / Presentation Mode*/}
       {isEditing ? (
         <>
@@ -348,21 +347,42 @@ const EditableColumnName = ({ columnName }: { columnName: string }) => {
         </>
       ) : (
         <>
-          <Typography
+          <Box
             sx={{
-              ...columnNameStyle,
+              width: "270px",
+              display: "flex",
+              justifyContent: "space-between",
             }}
           >
-            {columnName}
-          </Typography>
+            <Tooltip
+              title={
+                <Typography
+                  sx={{
+                    fontSize: "1.1rem",
+                  }}
+                >
+                  {columnName}
+                </Typography>
+              }
+              arrow
+            >
+              <Typography
+                sx={{
+                  ...columnNameStyle,
+                }}
+              >
+                {columnName}
+              </Typography>
+            </Tooltip>
 
-          <IconButton onClick={handleEditClick}>
-            <EditIcon
-              sx={{
-                ...iconStyle,
-              }}
-            />
-          </IconButton>
+            <IconButton onClick={handleEditClick}>
+              <EditIcon
+                sx={{
+                  ...iconStyle,
+                }}
+              />
+            </IconButton>
+          </Box>
         </>
       )}
     </Box>
@@ -447,9 +467,12 @@ function DroppableColumn({ id, cards }: DroppableColumnProps) {
     minWidth: "300px",
     maxWidth: "350px",
     display: "flex",
+    px: 1,
+    mx: 1,
+    mt: 1,
     flexDirection: "column",
     alignItems: "center",
-    backgroundColor: "red",
+    backgroundColor: "#F3F3F3",
     borderRadius: "10px",
     overflowX: "auto",
     overflowY: "auto",
@@ -470,19 +493,23 @@ function DroppableColumn({ id, cards }: DroppableColumnProps) {
       items={cards.map((card) => card.id)}
       strategy={verticalListSortingStrategy}
     >
-      <Box ref={setNodeRef} sx={columnStyle}>
-        <Box
-          sx={{
-            display: "flex",
-            alignItems: "center",
-          }}
-        >
-          <EditableColumnName columnName={id} />
-          <IconButton onClick={handleColumnDeletion}>
-            <DeleteOutlinedIcon style={{ color: "#cccccc" }} />
-          </IconButton>
-        </Box>
-        <Box sx={{ ...columnStyle, overflow: "auto" }}>
+      <Box
+        ref={setNodeRef}
+        sx={{
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+        }}
+      >
+        <Box sx={{ ...columnStyle, textAlign: "center" }}>
+          <Box
+            sx={{
+              display: "flex",
+              alignItems: "center",
+            }}
+          >
+            <EditableColumnName columnName={id} />
+          </Box>
           {cards.length > 0 ? (
             cards.map((card, index) => (
               <>
@@ -500,6 +527,9 @@ function DroppableColumn({ id, cards }: DroppableColumnProps) {
             <p>Add or drag a site here</p>
           )}
         </Box>
+        <IconButton onClick={handleColumnDeletion}>
+          <DeleteOutlinedIcon style={{ color: "#98C4F1" }} />
+        </IconButton>
       </Box>
     </SortableContext>
   );
@@ -515,6 +545,18 @@ function DragAndDropPage() {
       coordinateGetter: sortableKeyboardCoordinates,
     })
   );
+  // Set the popover handle for function buttons
+  const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
+  // Handle popover close/open
+  const handleOpenPopover = (event: React.MouseEvent<HTMLElement>) => {
+    setAnchorEl(event.currentTarget);
+  };
+
+  const handleClosePopover = () => {
+    setAnchorEl(null);
+  };
+
+  const open = Boolean(anchorEl);
 
   // Import trip(page)ID and itineraryData from mapContext
   const mapContext = useMapContext();
@@ -528,12 +570,11 @@ function DragAndDropPage() {
 
   // Style of the component
   const wrapperStyle = {
-    height: "auto",
+    height: "95vh",
     display: "flex",
     flexDirection: "row",
-    justifyContent: "space-between",
-    backgroundColor: "white",
-    px: 0,
+    alignItems: "flex-start",
+    backgroundColor: "#4B9BEB",
     overflow: "auto",
     position: "relative",
     ...scrollBarStyle,
@@ -547,6 +588,24 @@ function DragAndDropPage() {
     px: 2,
     justifyContent: "space-between",
     backgroundColor: "white",
+  };
+
+  const addColumnButtonStyle = {
+    width: "270px",
+    height: "50px",
+    borderRadius: "40px",
+    backgroundColor: "#FFFFFF55",
+    mx: 1,
+    mt: 1,
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    textAlign: "center",
+    fontSize: "18px",
+    fontFamily: "inter, sans-serif",
+    fontWeight: 500,
+    color: "#FFFFFF",
+    cursor: "pointer",
   };
 
   // Check the column where the column belongs to
@@ -690,48 +749,84 @@ function DragAndDropPage() {
   };
 
   return (
-    <Box sx={wrapperStyle}>
-      <DndContext
-        sensors={sensors}
-        collisionDetection={rectIntersection}
-        onDragStart={handleDragStart}
-        onDragOver={handleDragOver}
-        onDragEnd={handleDragEnd}
+    <>
+      {/*The app bar*/}
+      <Box
+        sx={{
+          width: "100%",
+          height: "5vh",
+          display: "flex",
+          justifyContent: "space-between",
+          backgroundColor: "#2e2d72",
+        }}
       >
-        <Box sx={{ display: "flex", justifyContent: "flex-start" }}>
-          {Object.entries(userItineraryData).map(([columnName, cards]) => (
-            <DroppableColumn key={columnName} id={columnName} cards={cards} />
-          ))}
-        </Box>
+        <Image
+          src="/FishnTrip Logo_W.png"
+          width={120}
+          height={40}
+          alt="logo"
+          objectFit="contain"
+        />
+        <IconButton onClick={handleOpenPopover}>
+          <MoreHorizOutlinedIcon style={{ color: "#a5a5a5" }} />
+        </IconButton>
 
-        <DragOverlay>
-          {activeId ? (
-            <SortableCard
-              {...userItineraryData[findContainer(activeId)!].find(
-                (card) => card.id === activeId
-              )!}
-            />
-          ) : null}
-        </DragOverlay>
-      </DndContext>
-
-      {/*Functions: Full screen, add column, save*/}
-      <Box sx={sideFunctionBarStyle}>
-        <IconButton onClick={handleExpandedClick}>
-          {itineraryWindowExpanded ? (
-            <FullscreenExitOutlinedIcon />
-          ) : (
-            <FullscreenOutlinedIcon />
-          )}
-        </IconButton>
-        <IconButton onClick={addColumn}>
-          <AddOutlinedIcon />
-        </IconButton>
-        <IconButton onClick={handleSave}>
-          <SaveAltOutlinedIcon />
-        </IconButton>
+        {/* Delete the card */}
+        <Popover
+          open={open}
+          anchorEl={anchorEl}
+          onClose={handleClosePopover}
+          anchorOrigin={{
+            vertical: "center",
+            horizontal: "right",
+          }}
+          transformOrigin={{
+            vertical: "center",
+            horizontal: "left",
+          }}
+        >
+          <IconButton onClick={handleExpandedClick}>
+            {itineraryWindowExpanded ? (
+              <FullscreenExitOutlinedIcon />
+            ) : (
+              <FullscreenOutlinedIcon />
+            )}
+          </IconButton>
+          <IconButton onClick={handleSave}>
+            <SaveAltOutlinedIcon />
+          </IconButton>
+        </Popover>
       </Box>
-    </Box>
+      {/*The drag and drop area */}
+      <Box sx={wrapperStyle}>
+        <DndContext
+          sensors={sensors}
+          collisionDetection={rectIntersection}
+          onDragStart={handleDragStart}
+          onDragOver={handleDragOver}
+          onDragEnd={handleDragEnd}
+        >
+          <Box sx={{ display: "flex", justifyContent: "flex-start", p: 1 }}>
+            {Object.entries(userItineraryData).map(([columnName, cards]) => (
+              <DroppableColumn key={columnName} id={columnName} cards={cards} />
+            ))}
+            <Box onClick={addColumn} sx={addColumnButtonStyle}>
+              Add a new column
+            </Box>
+          </Box>
+
+          <DragOverlay>
+            {activeId ? (
+              <SortableCard
+                {...userItineraryData[findContainer(activeId)!].find(
+                  (card) => card.id === activeId
+                )!}
+              />
+            ) : null}
+          </DragOverlay>
+        </DndContext>
+      </Box>
+    </>
   );
 }
 
@@ -1126,7 +1221,7 @@ function PlaceDetail() {
         address: locationData.address,
         latitude: locationData.latitude,
         longitude: locationData.longitude,
-        img: placeData?.photos[0],
+        img: placeData?.photos[0].getUrl(),
       };
 
       console.log(newCard);
@@ -1433,6 +1528,7 @@ const MapProvider: React.FC<{ children: React.ReactNode; params: any }> = ({
           });
           if (response.status === 200) {
             setUserItineraryData(response.data.data.data);
+            console.log(response.data.data.data);
           }
         }
       } catch (error) {
@@ -1498,7 +1594,7 @@ function ItineraryPage() {
           width: "100%",
           display: "flex",
           justifyContent: "center",
-          alignItems: "center",
+          alignItems: "flex-start",
           overflow: "hidden",
         }}
       >
@@ -1514,7 +1610,7 @@ function ItineraryPage() {
         <Box
           sx={{
             width: itineraryWindowExpanded ? "0%" : "60%",
-            height: "100vh",
+
             position: "relative",
           }}
         >

@@ -51,7 +51,7 @@ import {
   AddLocationOutlined as AddLocationOutlinedIcon,
   Close as CloseIcon,
   MoreHorizOutlined as MoreHorizOutlinedIcon,
-  BorderAllRounded,
+  MoreVertOutlined as MoreVertOutlinedIcon,
 } from "@mui/icons-material";
 import axios from "axios";
 import dynamic from "next/dynamic";
@@ -115,7 +115,8 @@ function SortableCard(card: Card) {
 
   // Set the style of the card
   const sortableStyle = {
-    marginBottom: 20,
+    marginBottom: 10,
+    marginTop: 10,
     transform: CSS.Transform.toString(transform),
     transition,
   };
@@ -177,7 +178,7 @@ function SortableCard(card: Card) {
         <Paper
           sx={(theme) => ({
             p: 2,
-            margin: "auto",
+            margin: 0,
             width: "260px",
             flexGrow: 1,
             backgroundColor: "#fff",
@@ -400,7 +401,16 @@ function GetDirection({
   // State of the components
   const [distance, setDistance] = useState<string>();
   const [duration, setDuration] = useState<string>();
-  const [travelMode, setTravelMode] = useState<string>();
+  const [travelMode, setTravelMode] = useState<google.maps.TravelMode>(
+    google.maps.TravelMode.DRIVING
+  );
+
+  // Import itineraryData from mapContext
+  const mapContext = useMapContext();
+  const { userItineraryData } = mapContext;
+
+  // Array of commuting methods
+  const transport = ["DRIVING", "TRANSIT", "WALKING", "BICYCLING"];
 
   // Get routes information between two cards
   useEffect(() => {
@@ -413,7 +423,7 @@ function GetDirection({
       const request = {
         origin: origin,
         destination: destination,
-        travelMode: TravelMode.DRIVING,
+        travelMode: travelMode,
       };
 
       directionInfo.route(request, (response) => {
@@ -426,9 +436,6 @@ function GetDirection({
         ) {
           setDistance(response.routes[0].legs[0].distance.text);
           setDuration(response.routes[0].legs[0].duration.text);
-          if (response.request.travelMode) {
-            setTravelMode(response.request.travelMode.toLowerCase());
-          }
         } else {
           console.warn("Invalid response structure", response);
         }
@@ -436,12 +443,39 @@ function GetDirection({
     };
 
     fetchData();
-  }, [origin, destination]);
+  }, [travelMode, userItineraryData]);
 
   return (
-    <Box>
-      {duration}, {distance} by {travelMode}
-    </Box>
+    <>
+      <Box>
+        <MoreVertOutlinedIcon style={{ color: "#909090" }} />
+      </Box>
+      <Box sx={{ display: "flex", alignItems: "center" }}>
+        <Box sx={{ color: "#909090", fontWeight: 500 }}>
+          `{distance}, {duration} by `
+        </Box>
+        {transport.map((k, i) => (
+          <Box
+            component="img"
+            src={`/${k}.png`}
+            key={i}
+            onClick={() => {
+              setTravelMode(k as google.maps.TravelMode);
+            }}
+            sx={{
+              cursor: "pointer",
+              width: "20px",
+              height: "20px",
+              margin: "2px",
+              opacity: 0.5,
+              backgroundColor: k === travelMode ? "#83CBEB" : "None",
+              borderRadius: "10px",
+              p: 0.5,
+            }}
+          />
+        ))}
+      </Box>
+    </>
   );
 }
 
@@ -1596,12 +1630,15 @@ function ItineraryPage() {
           justifyContent: "center",
           alignItems: "flex-start",
           overflow: "hidden",
+          position: "relative",
         }}
       >
         <Box
           sx={{
             width: itineraryWindowExpanded ? "100%" : "40%",
-            backgroundColor: "black",
+            boxShadow: "2px 1px 10px #555555",
+            position: "relative",
+            zIndex: 2,
           }}
         >
           <DragAndDropPage />
@@ -1610,8 +1647,8 @@ function ItineraryPage() {
         <Box
           sx={{
             width: itineraryWindowExpanded ? "0%" : "60%",
-
             position: "relative",
+            zIndex: 1,
           }}
         >
           <GoogleMap />

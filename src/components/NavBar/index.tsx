@@ -21,7 +21,7 @@ import { gsap } from "gsap";
 const inter = Inter({ subsets: ["latin"] });
 const pages = [
   /*{ name: "Home", href: "/" },*/
-  { name: "Blog", href: "/Blog" },
+  //{ name: "Blog", href: "/Blog" },
   { name: "Contact", href: "./#contact" },
 ];
 //const pages_m = [...pages, { name: "Contact", href: "/Contact" }];

@@ -27,6 +27,7 @@ import {
   Input,
   Modal,
   Popover,
+  Button,
 } from "@mui/material";
 import {
   useSortable,
@@ -450,31 +451,35 @@ function GetDirection({
       <Box>
         <MoreVertOutlinedIcon style={{ color: "#909090" }} />
       </Box>
-      <Box sx={{ display: "flex", alignItems: "center" }}>
-        <Box sx={{ color: "#909090", fontWeight: 500 }}>
-          `{distance}, {duration} by `
+      {distance && duration ? (
+        <Box sx={{ display: "flex", alignItems: "center" }}>
+          <Box sx={{ color: "#909090", fontWeight: 500 }}>
+            `{distance}, {duration} by `
+          </Box>
+          {transport.map((k, i) => (
+            <Box
+              component="img"
+              src={`/${k}.png`}
+              key={i}
+              onClick={() => {
+                setTravelMode(k as google.maps.TravelMode);
+              }}
+              sx={{
+                cursor: "pointer",
+                width: "20px",
+                height: "20px",
+                margin: "2px",
+                opacity: 0.5,
+                backgroundColor: k === travelMode ? "#83CBEB" : "None",
+                borderRadius: "10px",
+                p: 0.5,
+              }}
+            />
+          ))}
         </Box>
-        {transport.map((k, i) => (
-          <Box
-            component="img"
-            src={`/${k}.png`}
-            key={i}
-            onClick={() => {
-              setTravelMode(k as google.maps.TravelMode);
-            }}
-            sx={{
-              cursor: "pointer",
-              width: "20px",
-              height: "20px",
-              margin: "2px",
-              opacity: 0.5,
-              backgroundColor: k === travelMode ? "#83CBEB" : "None",
-              borderRadius: "10px",
-              p: 0.5,
-            }}
-          />
-        ))}
-      </Box>
+      ) : (
+        <Box></Box>
+      )}
     </>
   );
 }
@@ -612,16 +617,6 @@ function DragAndDropPage() {
     overflow: "auto",
     position: "relative",
     ...scrollBarStyle,
-  };
-
-  const sideFunctionBarStyle = {
-    position: "sticky",
-    right: 0,
-    display: "flex",
-    flexDirection: "column",
-    px: 2,
-    justifyContent: "space-between",
-    backgroundColor: "white",
   };
 
   const addColumnButtonStyle = {
@@ -776,6 +771,7 @@ function DragAndDropPage() {
         email: session?.user?.email,
         tripID: tripID,
       });
+
       console.log("Data sent:", response.data);
     } catch (error) {
       console.error("There was an error submitting the form:", error);
@@ -819,14 +815,24 @@ function DragAndDropPage() {
             horizontal: "left",
           }}
         >
-          <IconButton onClick={handleExpandedClick}>
+          <IconButton
+            onClick={() => {
+              handleExpandedClick();
+              handleClosePopover();
+            }}
+          >
             {itineraryWindowExpanded ? (
               <FullscreenExitOutlinedIcon />
             ) : (
               <FullscreenOutlinedIcon />
             )}
           </IconButton>
-          <IconButton onClick={handleSave}>
+          <IconButton
+            onClick={() => {
+              handleSave();
+              handleClosePopover();
+            }}
+          >
             <SaveAltOutlinedIcon />
           </IconButton>
         </Popover>
@@ -1092,32 +1098,35 @@ function Weather({
     fetchWeatherData();
   }, [longitude, latitude]);
 
+  const changeDateFormat = (dateString: string) => {
+    const [year, month, day] = dateString.split("-");
+    return `${day}/${month}/${year}`;
+  };
+
   return (
     <Box
       sx={{
         mt: 3,
         borderRadius: "8px",
         maxWidth: "100%",
+        display: "flex",
+        overflowX: "auto",
       }}
     >
-      <Typography gutterBottom sx={{ fontWeight: 600 }}>
-        Weather Forecast
-      </Typography>
-
       {isLoading ? (
         <CircularProgress />
       ) : (
         weatherInfo?.time?.map((date: any, i: number) => (
           <Box key={i} sx={style}>
-            <Typography variant="body1" sx={{ minWidth: "12ch" }}>
-              {date.slice(5)}
-            </Typography>
-            <Typography variant="body1" sx={{ minWidth: "15ch" }}>
+            <Typography sx={{ fontSize: "1.1rem", minWidth: "15ch" }}>
               {weatherInfo.temperature_2m_min[i].toFixed(1)}°C ~{" "}
               {weatherInfo.temperature_2m_max[i].toFixed(1)}°C
             </Typography>
             <Typography variant="body1" sx={{ minWidth: "15ch" }}>
-              Precipitation: {weatherInfo.precipitation_sum[i].toFixed(1)} mm
+              Rain: {weatherInfo.precipitation_sum[i].toFixed(1)} mm
+            </Typography>
+            <Typography sx={{ fontSize: "0.8rem", minWidth: "12ch" }}>
+              {changeDateFormat(date)}
             </Typography>
           </Box>
         ))
@@ -1284,19 +1293,35 @@ function PlaceDetail() {
           borderRadius: "0px 10px 0px 0px",
           display: "flex",
           justifyContent: "space-between",
+          alignItems: "center",
         }}
       >
-        <IconButton
+        <Box
+          component="button"
           sx={{
-            p: 3,
+            backgroundColor: "white",
             "&:hover": {
-              backgroundColor: "white",
+              backgroundColor: "rgb(229, 237, 241)",
             },
+
+            px: 2,
+            py: 1,
+            marginLeft: 2,
+            boxShadow: "1px 1px 3px #a5a5a5",
+            border: "0px",
+            borderRadius: "10px",
+            display: "flex",
+            alignItems: "center",
+            minWidth: "50px",
+            height: "30px",
+            cursor: "pointer",
           }}
           onClick={HandleOpenColumnList}
         >
-          <AddLocationOutlinedIcon color="primary" />
-        </IconButton>
+          <Typography sx={{ textAlign: "center", color: "#909090" }}>
+            Import
+          </Typography>
+        </Box>
         <Box
           sx={{
             display: OpenColumnList,
@@ -1305,23 +1330,13 @@ function PlaceDetail() {
             left: 10,
             top: 50,
             backgroundColor: "#fcfcfc",
-            minWidth: "100%",
+            minWidth: "100px",
             borderRadius: "10px",
             boxShadow: "20px solid black",
             height: "auto",
             p: 1,
           }}
         >
-          <Typography
-            sx={{
-              p: 2,
-              textAlign: "center",
-              fontWeight: 500,
-              fontSize: "1.1rem",
-            }}
-          >
-            Add to one of the columns
-          </Typography>
           <List>
             {Object.keys(userItineraryData).map((k, i) => {
               return (
@@ -1337,6 +1352,9 @@ function PlaceDetail() {
               );
             })}
           </List>
+          <Button sx={{ ml: 2 }} onClick={() => setOpenColumnList("none")}>
+            Cancel
+          </Button>
         </Box>
         <IconButton
           sx={{
@@ -1636,6 +1654,7 @@ function ItineraryPage() {
         <Box
           sx={{
             width: itineraryWindowExpanded ? "100%" : "40%",
+            minWidth: "300px",
             boxShadow: "2px 1px 10px #555555",
             position: "relative",
             zIndex: 2,
@@ -1655,7 +1674,8 @@ function ItineraryPage() {
           {locationData?.placeID && (
             <Box
               sx={{
-                width: "30%",
+                minWidth: "300px",
+                maxWidth: "50%",
                 display: mapDetailOpen ? "inherit" : "none",
                 position: "absolute",
                 bottom: 0,
